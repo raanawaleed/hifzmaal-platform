@@ -1,0 +1,212 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Category;
+use Illuminate\Database\Seeder;
+
+class CategorySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $categories = [
+            // Income Categories
+            [
+                'name' => 'Salary',
+                'name_ur' => 'تنخواہ',
+                'type' => 'income',
+                'icon' => 'briefcase',
+                'color' => '#10B981',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 1,
+            ],
+            [
+                'name' => 'Business Income',
+                'name_ur' => 'کاروباری آمدنی',
+                'type' => 'income',
+                'icon' => 'building',
+                'color' => '#059669',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 2,
+            ],
+            [
+                'name' => 'Investment Returns',
+                'name_ur' => 'سرمایہ کاری کی واپسی',
+                'type' => 'income',
+                'icon' => 'chart-line',
+                'color' => '#34D399',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 3,
+            ],
+            [
+                'name' => 'Rental Income',
+                'name_ur' => 'کرایہ کی آمدنی',
+                'type' => 'income',
+                'icon' => 'home',
+                'color' => '#6EE7B7',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 4,
+            ],
+            [
+                'name' => 'Gift/Donation Received',
+                'name_ur' => 'تحفہ/عطیہ موصول ہوا',
+                'type' => 'income',
+                'icon' => 'gift',
+                'color' => '#A7F3D0',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 5,
+            ],
+
+            // Expense Categories
+            [
+                'name' => 'Food & Groceries',
+                'name_ur' => 'کھانا اور گروسری',
+                'type' => 'expense',
+                'icon' => 'shopping-cart',
+                'color' => '#EF4444',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 1,
+            ],
+            [
+                'name' => 'Housing & Rent',
+                'name_ur' => 'رہائش اور کرایہ',
+                'type' => 'expense',
+                'icon' => 'home',
+                'color' => '#DC2626',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 2,
+            ],
+            [
+                'name' => 'Transportation',
+                'name_ur' => 'نقل و حمل',
+                'type' => 'expense',
+                'icon' => 'car',
+                'color' => '#F87171',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 3,
+            ],
+            [
+                'name' => 'Utilities',
+                'name_ur' => 'یوٹیلیٹیز',
+                'type' => 'expense',
+                'icon' => 'bolt',
+                'color' => '#FCA5A5',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 4,
+            ],
+            [
+                'name' => 'Healthcare',
+                'name_ur' => 'صحت کی دیکھ بھال',
+                'type' => 'expense',
+                'icon' => 'heart-pulse',
+                'color' => '#F59E0B',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 5,
+            ],
+            [
+                'name' => 'Education',
+                'name_ur' => 'تعلیم',
+                'type' => 'expense',
+                'icon' => 'book',
+                'color' => '#3B82F6',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 6,
+            ],
+            [
+                'name' => 'Entertainment',
+                'name_ur' => 'تفریح',
+                'type' => 'expense',
+                'icon' => 'film',
+                'color' => '#8B5CF6',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 7,
+            ],
+            [
+                'name' => 'Zakat & Sadaqah',
+                'name_ur' => 'زکوٰۃ اور صدقہ',
+                'type' => 'expense',
+                'icon' => 'hand-holding-heart',
+                'color' => '#10B981',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 8,
+            ],
+            [
+                'name' => 'Clothing',
+                'name_ur' => 'کپڑے',
+                'type' => 'expense',
+                'icon' => 'shirt',
+                'color' => '#EC4899',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 9,
+            ],
+            [
+                'name' => 'Personal Care',
+                'name_ur' => 'ذاتی دیکھ بھال',
+                'type' => 'expense',
+                'icon' => 'user',
+                'color' => '#14B8A6',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 10,
+            ],
+            [
+                'name' => 'Insurance',
+                'name_ur' => 'انشورنس',
+                'type' => 'expense',
+                'icon' => 'shield',
+                'color' => '#6366F1',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 11,
+            ],
+            [
+                'name' => 'Debt Payment',
+                'name_ur' => 'قرض کی ادائیگی',
+                'type' => 'expense',
+                'icon' => 'credit-card',
+                'color' => '#EF4444',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 12,
+            ],
+            [
+                'name' => 'Savings & Investments',
+                'name_ur' => 'بچت اور سرمایہ کاری',
+                'type' => 'expense',
+                'icon' => 'piggy-bank',
+                'color' => '#10B981',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 13,
+            ],
+            [
+                'name' => 'Miscellaneous',
+                'name_ur' => 'متفرق',
+                'type' => 'expense',
+                'icon' => 'ellipsis',
+                'color' => '#6B7280',
+                'is_halal' => true,
+                'is_system' => true,
+                'sort_order' => 14,
+            ],
+        ];
+
+        foreach ($categories as $category) {
+            Category::create($category);
+        }
+    }
+}

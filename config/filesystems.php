@@ -47,6 +47,13 @@ return [
             'report' => false,
         ],
 
+        'receipts' => [
+            'driver' => 'local',
+            'root' => storage_path('app/receipts'),
+            'url' => env('APP_URL').'/receipts',
+            'visibility' => 'private',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -62,6 +69,7 @@ return [
 
     ],
 
+
     /*
     |--------------------------------------------------------------------------
     | Symbolic Links
@@ -73,8 +81,9 @@ return [
     |
     */
 
-    'links' => [
+     'links' => [
         public_path('storage') => storage_path('app/public'),
+        public_path('receipts') => storage_path('app/receipts'),
     ],
 
 ];
