@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller as BaseController;
-
 /**
  * @OA\Info(
  *     version="1.0.0",
  *     title="HifzMaal API Documentation",
- *     description="Islamic Family Finance Management Platform API",
+ *     description="Islamic Family Finance Management Platform API - Manage your family finances according to Islamic principles",
  *     @OA\Contact(
- *         email="support@hifzmaal.com"
+ *         email="support@hifzmaal.com",
+ *         name="HifzMaal Support"
  *     ),
  *     @OA\License(
  *         name="MIT",
@@ -19,8 +18,13 @@ use App\Http\Controllers\Controller as BaseController;
  * )
  * 
  * @OA\Server(
- *     url=L5_SWAGGER_CONST_HOST,
- *     description="API Server"
+ *     url="http://localhost:8000",
+ *     description="Local Development Server"
+ * )
+ * 
+ * @OA\Server(
+ *     url="https://api.hifzmaal.com",
+ *     description="Production Server"
  * )
  * 
  * @OA\SecurityScheme(
@@ -28,50 +32,71 @@ use App\Http\Controllers\Controller as BaseController;
  *     type="http",
  *     scheme="bearer",
  *     bearerFormat="JWT",
- *     description="Enter token in format: Bearer {token}"
+ *     description="Enter your bearer token in the format: Bearer {token}"
  * )
  * 
  * @OA\Tag(
  *     name="Authentication",
- *     description="API endpoints for user authentication"
+ *     description="API endpoints for user authentication and registration"
  * )
  * 
  * @OA\Tag(
  *     name="Families",
- *     description="Family management endpoints"
+ *     description="Family management - create and manage family accounts"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Family Members",
+ *     description="Manage family members and their roles"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Accounts",
+ *     description="Bank accounts, wallets, and cash management"
  * )
  * 
  * @OA\Tag(
  *     name="Transactions",
- *     description="Transaction management endpoints"
+ *     description="Income, expense, and transfer transactions"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Categories",
+ *     description="Transaction categories management"
  * )
  * 
  * @OA\Tag(
  *     name="Budgets",
- *     description="Budget management endpoints"
+ *     description="Budget creation and tracking"
  * )
  * 
  * @OA\Tag(
  *     name="Bills",
- *     description="Bill management endpoints"
+ *     description="Recurring bills and payments management"
  * )
  * 
  * @OA\Tag(
  *     name="Savings Goals",
- *     description="Savings goal management endpoints"
+ *     description="Savings goals for Hajj, education, marriage, etc."
  * )
  * 
  * @OA\Tag(
  *     name="Zakat",
- *     description="Zakat calculation and payment endpoints"
+ *     description="Zakat calculation and payment tracking"
  * )
  * 
  * @OA\Tag(
  *     name="Dashboard",
- *     description="Dashboard and insights endpoints"
+ *     description="Dashboard overview and insights"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Accounts",
+ *     description="Account management endpoints"
  * )
  */
-class Controller extends BaseController
+abstract class Controller
 {
     //
-}
+} 
+ 

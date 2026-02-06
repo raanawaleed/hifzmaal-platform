@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
@@ -12,7 +13,16 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ZakatController;
 use Illuminate\Support\Facades\Route;
 
+// Authentication Routes (Public)
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+// Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
+    
+    // Auth
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/logout', [AuthController::class, 'logout']);
     
     // Family Routes
     Route::apiResource('families', FamilyController::class);

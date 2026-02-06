@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Family;
 use App\Services\TransactionService;
 use App\Services\BudgetService;
@@ -10,7 +9,8 @@ use App\Services\BillService;
 use App\Services\SavingsGoalService;
 use App\Services\ZakatService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use OpenApi\Annotations as OA;
+use App\Http\Controllers\Api\Controller;
 
 class DashboardController extends Controller
 {
@@ -22,7 +22,82 @@ class DashboardController extends Controller
         protected ZakatService $zakatService,
     ) {}
 
-    public function index(Request $request, Family $family): JsonResponse
+    /**
+     * @OA\Get(
+     *     path="/api/families/{family}/dashboard",
+     *     summary="Get dashboard overview",
+     *     description="Get comprehensive dashboard data including financial overview, transactions, budgets, bills, savings, and zakat status",
+     *     tags={"Dashboard"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="family",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="financial_overview",
+     *                     type="object",
+     *                     @OA\Property(property="total_balance", type="number"),
+     *                     @OA\Property(property="monthly_income", type="number"),
+     *                     @OA\Property(property="monthly_expense", type="number"),
+     *                     @OA\Property(property="net_income", type="number"),
+     *                     @OA\Property(property="currency", type="string")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="recent_transactions",
+     *                     type="array",
+     *                     @OA\Items(ref="#/components/schemas/Transaction")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="budget_overview",
+     *                     type="object"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="bills",
+     *                     type="object",
+     *                     @OA\Property(property="upcoming", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="overdue", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="upcoming_count", type="integer"),
+     *                     @OA\Property(property="overdue_count", type="integer")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="savings_overview",
+     *                     type="object"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="category_expenses",
+     *                     type="array",
+     *                     @OA\Items(type="object")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="monthly_trend",
+     *                     type="array",
+     *                     @OA\Items(type="object")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="zakat_status",
+     *                     type="object",
+     *                     nullable=true
+     *                 ),
+     *                 @OA\Property(property="pending_approvals", type="integer"),
+     *                 @OA\Property(property="family_members", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function index(Family $family): JsonResponse
     {
         $this->authorize('view', $family);
 
@@ -98,6 +173,56 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/families/{family}/insights",
+     *     summary="Get financial insights and recommendations",
+     *     description="Get AI-powered insights, financial health score, and personalized recommendations",
+     *     tags={"Dashboard"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="family",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="expense_comparison",
+     *                     type="object",
+     *                     @OA\Property(property="current_month", type="number"),
+     *                     @OA\Property(property="previous_month", type="number"),
+     *                     @OA\Property(property="change_percentage", type="number"),
+     *                     @OA\Property(property="trend", type="string")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="top_spending_categories",
+     *                     type="array",
+     *                     @OA\Items(type="object")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="budget_alerts",
+     *                     type="array",
+     *                     @OA\Items(type="object")
+     *                 ),
+     *                 @OA\Property(property="financial_health_score", type="integer"),
+     *                 @OA\Property(
+     *                     property="tips",
+     *                     type="array",
+     *                     @OA\Items(type="object")
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function insights(Family $family): JsonResponse
     {
         $this->authorize('view', $family);
