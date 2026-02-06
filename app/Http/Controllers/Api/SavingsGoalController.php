@@ -11,10 +11,9 @@ use App\Models\SavingsGoal;
 use App\Services\SavingsGoalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class SavingsGoalController extends Controller
+class SavingsGoalController extends ApiController
 {
     public function __construct(
         protected SavingsGoalService $savingsGoalService
@@ -52,7 +51,7 @@ class SavingsGoalController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/SavingsGoal")
+     *                 @OA\Items()
      *             )
      *         )
      *     ),
@@ -112,7 +111,7 @@ class SavingsGoalController extends Controller
      *         description="Savings goal created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/SavingsGoal")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -151,7 +150,7 @@ class SavingsGoalController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/SavingsGoal")
+     *         @OA\JsonContent(ref="#")
      *     ),
      *     @OA\Response(response=404, description="Savings goal not found")
      * )

@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use OpenApi\Annotations as OA;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-class AuthController extends Controller
+class AuthController extends ApiController
 {
     /**
+     * Register a new user
+     * 
      * @OA\Post(
      *     path="/api/register",
      *     summary="Register new user",
@@ -21,12 +23,21 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             required={"name","email","password","password_confirmation"},
      *             @OA\Property(property="name", type="string", example="Ahmed Ali"),
-     *             @OA\Property(property="email", type="string", example="ahmed@example.com"),
-     *             @OA\Property(property="password", type="string", example="password123"),
-     *             @OA\Property(property="password_confirmation", type="string", example="password123")
+     *             @OA\Property(property="email", type="string", format="email", example="ahmed@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="password123"),
+     *             @OA\Property(property="locale", type="string", example="en")
      *         )
      *     ),
-     *     @OA\Response(response=201, description="User registered"),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User registered successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="token", type="string"),
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     ),
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
@@ -60,6 +71,8 @@ class AuthController extends Controller
     }
 
     /**
+     * Login user
+     * 
      * @OA\Post(
      *     path="/api/login",
      *     summary="Login user",
@@ -68,11 +81,19 @@ class AuthController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="ahmed@example.com"),
-     *             @OA\Property(property="password", type="string", example="password123")
+     *             @OA\Property(property="email", type="string", format="email", example="ahmed@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123")
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Login successful"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="token", type="string"),
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     ),
      *     @OA\Response(response=422, description="Invalid credentials")
      * )
      */
@@ -105,12 +126,18 @@ class AuthController extends Controller
     }
 
     /**
+     * Logout user
+     * 
      * @OA\Post(
      *     path="/api/logout",
      *     summary="Logout user",
      *     tags={"Authentication"},
      *     security={{"sanctum":{}}},
-     *     @OA\Response(response=200, description="Logout successful")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout successful",
+     *         @OA\JsonContent(@OA\Property(property="message", type="string"))
+     *     )
      * )
      */
     public function logout(Request $request): JsonResponse
@@ -120,9 +147,11 @@ class AuthController extends Controller
     }
 
     /**
+     * Get authenticated user
+     * 
      * @OA\Get(
      *     path="/api/user",
-     *     summary="Get authenticated user",
+     *     summary="Get current user",
      *     tags={"Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(response=200, description="User details")

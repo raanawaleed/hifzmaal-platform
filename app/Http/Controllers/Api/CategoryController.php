@@ -10,10 +10,9 @@ use App\Models\Category;
 use App\Models\Family;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class CategoryController extends Controller
+class CategoryController extends ApiController
 {
     /**
      * @OA\Get(
@@ -41,7 +40,7 @@ class CategoryController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Category")
+     *                 @OA\Items()
      *             )
      *         )
      *     ),
@@ -96,7 +95,7 @@ class CategoryController extends Controller
      *         description="Category created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Category")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")

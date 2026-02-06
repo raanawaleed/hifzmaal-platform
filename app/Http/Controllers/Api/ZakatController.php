@@ -9,7 +9,6 @@ use App\Models\ZakatRecipient;
 use App\Services\ZakatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use App\Http\Requests\StoreZakatCalculationRequest;
 use App\Http\Requests\UpdateZakatCalculationRequest;
 use App\Http\Requests\StoreZakatPaymentRequest;
@@ -19,7 +18,7 @@ use App\Http\Resources\ZakatCalculationResource;
 use App\Http\Resources\ZakatPaymentResource;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class ZakatController extends Controller
+class ZakatController extends ApiController
 {
     public function __construct(
         protected ZakatService $zakatService
@@ -45,7 +44,7 @@ class ZakatController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/ZakatCalculation")
+     *                 @OA\Items()
      *             )
      *         )
      *     )
@@ -97,7 +96,7 @@ class ZakatController extends Controller
      *         description="Zakat calculated successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/ZakatCalculation")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     )
      * )
@@ -139,7 +138,7 @@ class ZakatController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/ZakatCalculation")
+     *         @OA\JsonContent(ref="#")
      *     )
      * )
      */

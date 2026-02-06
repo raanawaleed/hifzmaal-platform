@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\Controller;
 use App\Http\Requests\StoreFamilyRequest;
 use App\Http\Requests\UpdateFamilyRequest;
 use App\Http\Resources\FamilyResource;
 use App\Models\Family;
 use Illuminate\Http\JsonResponse;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class FamilyController extends Controller
+class FamilyController extends ApiController
 {
     public function __construct()
     {
@@ -21,22 +19,10 @@ class FamilyController extends Controller
     /**
      * @OA\Get(
      *     path="/api/families",
-     *     summary="Get list of families",
+     *     summary="Get all families",
      *     tags={"Families"},
      *     security={{"sanctum":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Family")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(response=200, description="List of families")
      * )
      */
     public function index(): AnonymousResourceCollection
@@ -58,27 +44,19 @@ class FamilyController extends Controller
     /**
      * @OA\Post(
      *     path="/api/families",
-     *     summary="Create a new family",
+     *     summary="Create family",
      *     tags={"Families"},
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"name","currency","locale"},
-     *             @OA\Property(property="name", type="string", example="Ahmed Family"),
-     *             @OA\Property(property="currency", type="string", example="PKR"),
-     *             @OA\Property(property="locale", type="string", example="en")
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="currency", type="string"),
+     *             @OA\Property(property="locale", type="string")
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Family created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Family")
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error")
+     *     @OA\Response(response=201, description="Family created")
      * )
      */
     public function store(StoreFamilyRequest $request): JsonResponse
@@ -108,27 +86,16 @@ class FamilyController extends Controller
     /**
      * @OA\Get(
      *     path="/api/families/{id}",
-     *     summary="Get family by ID",
+     *     summary="Get family",
      *     tags={"Families"},
      *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Family")
-     *     ),
-     *     @OA\Response(response=404, description="Family not found")
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Family details")
      * )
      */
     public function show(Family $family): FamilyResource
     {
         $family->load(['owner', 'members', 'accounts']);
-        
         return new FamilyResource($family);
     }
 
@@ -138,29 +105,13 @@ class FamilyController extends Controller
      *     summary="Update family",
      *     tags={"Families"},
      *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="currency", type="string"),
-     *             @OA\Property(property="locale", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Family updated successfully"
-     *     )
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Updated")
      * )
      */
     public function update(UpdateFamilyRequest $request, Family $family): JsonResponse
     {
         $family->update($request->validated());
-
         return response()->json([
             'message' => 'Family updated successfully',
             'data' => new FamilyResource($family),
@@ -173,24 +124,13 @@ class FamilyController extends Controller
      *     summary="Delete family",
      *     tags={"Families"},
      *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Family deleted successfully"
-     *     )
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Deleted")
      * )
      */
     public function destroy(Family $family): JsonResponse
     {
         $family->delete();
-
-        return response()->json([
-            'message' => 'Family deleted successfully',
-        ]);
+        return response()->json(['message' => 'Family deleted successfully']);
     }
 }

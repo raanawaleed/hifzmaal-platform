@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-
-use App\Http\Controllers\Api\Controller;
 use OpenApi\Annotations as OA;
+
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Http\Resources\AccountResource;
@@ -13,7 +13,7 @@ use App\Models\Family;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class AccountController extends Controller
+class AccountController extends ApiController
 {
     /**
      * @OA\Get(
@@ -35,7 +35,7 @@ class AccountController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Account")
+     *                 @OA\Items()
      *             )
      *         )
      *     ),
@@ -86,7 +86,7 @@ class AccountController extends Controller
      *         description="Account created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Account")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -136,7 +136,7 @@ class AccountController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Account")
+     *         @OA\JsonContent(ref="#")
      *     ),
      *     @OA\Response(response=404, description="Account not found")
      * )

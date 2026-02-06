@@ -9,10 +9,9 @@ use App\Services\BillService;
 use App\Services\SavingsGoalService;
 use App\Services\ZakatService;
 use Illuminate\Http\JsonResponse;
-use OpenApi\Annotations as OA;
 use App\Http\Controllers\Api\Controller;
 
-class DashboardController extends Controller
+class DashboardController extends ApiController
 {
     public function __construct(
         protected TransactionService $transactionService,
@@ -55,7 +54,7 @@ class DashboardController extends Controller
      *                 @OA\Property(
      *                     property="recent_transactions",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Transaction")
+     *                     @OA\Items()
      *                 ),
      *                 @OA\Property(
      *                     property="budget_overview",

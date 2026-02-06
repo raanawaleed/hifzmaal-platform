@@ -9,10 +9,9 @@ use App\Http\Controllers\Api\Controller;
 use App\Models\Family;
 use App\Models\FamilyMember;
 use Illuminate\Http\JsonResponse;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class FamilyMemberController extends Controller
+class FamilyMemberController extends ApiController
 {
     /**
      * @OA\Get(
@@ -34,7 +33,7 @@ class FamilyMemberController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/FamilyMember")
+     *                 @OA\Items()
      *             )
      *         )
      *     ),
@@ -84,7 +83,7 @@ class FamilyMemberController extends Controller
      *         description="Family member added successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/FamilyMember")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -123,7 +122,7 @@ class FamilyMemberController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/FamilyMember")
+     *         @OA\JsonContent(ref="#")
      *     ),
      *     @OA\Response(response=404, description="Family member not found")
      * )

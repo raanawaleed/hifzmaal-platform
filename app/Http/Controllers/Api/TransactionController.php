@@ -11,10 +11,9 @@ use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class TransactionController extends Controller
+class TransactionController extends ApiController
 {
     public function __construct(
         protected TransactionService $transactionService
@@ -82,7 +81,7 @@ class TransactionController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Transaction")
+     *                 @OA\Items()
      *             ),
      *             @OA\Property(property="links", type="object"),
      *             @OA\Property(property="meta", type="object")
@@ -174,7 +173,7 @@ class TransactionController extends Controller
      *         description="Transaction created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Transaction")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -213,7 +212,7 @@ class TransactionController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Transaction")
+     *         @OA\JsonContent(ref="#")
      *     ),
      *     @OA\Response(response=404, description="Transaction not found")
      * )

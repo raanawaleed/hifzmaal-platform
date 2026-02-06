@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use OpenApi\Annotations as OA;
 use App\Http\Controllers\Api\Controller;
 use App\Http\Requests\StoreBillRequest;
 use App\Http\Requests\UpdateBillRequest;
@@ -11,10 +12,9 @@ use App\Models\Family;
 use App\Services\BillService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class BillController extends Controller
+class BillController extends ApiController
 {
     public function __construct(
         protected BillService $billService
@@ -52,7 +52,7 @@ class BillController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Bill")
+     *                 @OA\Items()
      *             )
      *         )
      *     ),
@@ -90,8 +90,7 @@ class BillController extends Controller
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
-     *     @OA\Request
-     *      Body(
+     *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"category_id", "name", "type", "amount", "due_date", "frequency"},
@@ -106,7 +105,7 @@ class BillController extends Controller
      *             @OA\Property(property="account_id", type="integer", nullable=true),
      *             @OA\Property(property="provider", type="string", example="K-Electric"),
      *             @OA\Property(property="account_number", type="string", example="12345678"),
-     *             @OA\Property(property="split_members", type="array", @OA\Items(type="integer")),
+     *             @OA\Property(property="split_members", type="array", @OA\Items(type="integer",example=5)),
      *             @OA\Property(property="reminder_days", type="integer", example=3)
      *         )
      *     ),
@@ -115,7 +114,7 @@ class BillController extends Controller
      *         description="Bill created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Bill")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -153,7 +152,7 @@ class BillController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Bill")
+     *         @OA\JsonContent(ref="#")
      *     ),
      *     @OA\Response(response=404, description="Bill not found")
      * )

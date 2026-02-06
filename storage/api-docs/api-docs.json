@@ -1,0 +1,3891 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "HifzMaal API",
+        "description": "Islamic Family Finance Management Platform",
+        "contact": {
+            "email": "support@hifzmaal.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local"
+        },
+        {
+            "url": "https://api.hifzmaal.com",
+            "description": "Production"
+        }
+    ],
+    "paths": {
+        "/api/families/{family}/accounts": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get all accounts for a family",
+                "operationId": "e58dd3912bb2b37e11f5d0e515e183db",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Create a new account",
+                "operationId": "b24d9940fc2e006141fd503ecc97b895",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "initial_balance"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Main Wallet"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "cash",
+                                            "bank",
+                                            "wallet",
+                                            "savings",
+                                            "investment"
+                                        ],
+                                        "example": "cash"
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "example": "PKR"
+                                    },
+                                    "initial_balance": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10000
+                                    },
+                                    "account_number": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    },
+                                    "bank_name": {
+                                        "type": "string",
+                                        "example": "HBL"
+                                    },
+                                    "include_in_zakat": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Account created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/accounts/{account}": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get account by ID",
+                "operationId": "ecc0544ef26223f3b1789c3ccc87c03d",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Update account",
+                "operationId": "2f8a782fd314845a2a94e95936838ecf",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "include_in_zakat": {
+                                        "type": "boolean"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Account updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Delete account",
+                "operationId": "6a656334a9612deb5945b62edfdd7302",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Account deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register new user",
+                "description": "Register a new user",
+                "operationId": "8e4e3cb7b46126f4696379d3c7eeb4ad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ahmed Ali"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "ahmed@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "locale": {
+                                        "type": "string",
+                                        "example": "en"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login user",
+                "description": "Login user",
+                "operationId": "222b2625838e3c57e017987f73598fda",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "ahmed@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user",
+                "description": "Logout user",
+                "operationId": "ad65cbbd4e9f201619eae184a5961a98",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get current user",
+                "description": "Get authenticated user",
+                "operationId": "961ad57987905b44ae2e2f40b82e76de",
+                "responses": {
+                    "200": {
+                        "description": "User details"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/bills": {
+            "get": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Get all bills for a family",
+                "operationId": "394181b6beb51104aa2bfc1240ee84d8",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "paid",
+                                "overdue"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "electricity",
+                                "gas",
+                                "water",
+                                "internet",
+                                "mobile",
+                                "rent",
+                                "school_fees",
+                                "other"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Create a new bill",
+                "operationId": "61aec20eb5b92e465210e42147d9788e",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category_id",
+                                    "name",
+                                    "type",
+                                    "amount",
+                                    "due_date",
+                                    "frequency"
+                                ],
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Electricity Bill"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "electricity",
+                                            "gas",
+                                            "water",
+                                            "internet",
+                                            "mobile",
+                                            "rent",
+                                            "school_fees",
+                                            "other"
+                                        ],
+                                        "example": "electricity"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 3500
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-02-15"
+                                    },
+                                    "frequency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "monthly",
+                                            "quarterly",
+                                            "yearly"
+                                        ],
+                                        "example": "monthly"
+                                    },
+                                    "is_recurring": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "auto_pay": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "provider": {
+                                        "type": "string",
+                                        "example": "K-Electric"
+                                    },
+                                    "account_number": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    },
+                                    "split_members": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    },
+                                    "reminder_days": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Bill created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/bills/{bill}": {
+            "get": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Get bill by ID",
+                "operationId": "90a9effc242d8398cdd0a2df92610b04",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bill not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Update bill",
+                "operationId": "65f53e081378285c4fcff90a6e7e051f",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "reminder_days": {
+                                        "type": "integer"
+                                    },
+                                    "auto_pay": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bill updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Delete bill",
+                "operationId": "ab12c21be45908231217676be8fae97e",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bill deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/bills/{bill}/mark-as-paid": {
+            "post": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Mark bill as paid",
+                "operationId": "3ef3a487cb8c6f9132bc0d6a84b71e1c",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "bill",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bill marked as paid successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/bills/upcoming": {
+            "get": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Get upcoming bills",
+                "operationId": "4363b3b79402cf95b42b33047ec41d6e",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/bills/overdue": {
+            "get": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Get overdue bills",
+                "operationId": "7c2784b3881bb0b72e58d1b6c36bca44",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/bills/statistics": {
+            "get": {
+                "tags": [
+                    "Bills"
+                ],
+                "summary": "Get bill statistics",
+                "operationId": "d0b397d339bdaf4a9714febdcb9d6763",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_bills": {
+                                                    "type": "integer"
+                                                },
+                                                "pending_bills": {
+                                                    "type": "integer"
+                                                },
+                                                "overdue_bills": {
+                                                    "type": "integer"
+                                                },
+                                                "paid_this_month": {
+                                                    "type": "integer"
+                                                },
+                                                "total_due_amount": {
+                                                    "type": "number"
+                                                },
+                                                "average_bill_amount": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/budgets": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Get all budgets for a family",
+                "operationId": "d21a0825c57a43bbddd5e36741f8ebca",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "current",
+                        "in": "query",
+                        "description": "Get only current budgets",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Create a new budget",
+                "operationId": "ba93977da68ff9224ced50a99dad55a4",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category_id",
+                                    "name",
+                                    "amount",
+                                    "period",
+                                    "start_date",
+                                    "end_date"
+                                ],
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Monthly Groceries Budget"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 15000
+                                    },
+                                    "period": {
+                                        "type": "string",
+                                        "enum": [
+                                            "weekly",
+                                            "monthly",
+                                            "yearly"
+                                        ],
+                                        "example": "monthly"
+                                    },
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-02-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-02-29"
+                                    },
+                                    "alert_threshold": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 80
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Budget created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/budgets/{budget}": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Get budget by ID",
+                "operationId": "8e09cc62d3ba8d548fed01951541a5a9",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Budget not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Update budget",
+                "operationId": "ba40716ef577ecca3206478f07718d99",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "alert_threshold": {
+                                        "type": "number"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Budget updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Delete budget",
+                "operationId": "316be399151d30061b81af5cc44fd504",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/budgets/overview": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Get budget overview for family",
+                "operationId": "5c74f01d2a273df479eab4374cd16738",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_budget": {
+                                                    "type": "number"
+                                                },
+                                                "total_spent": {
+                                                    "type": "number"
+                                                },
+                                                "total_remaining": {
+                                                    "type": "number"
+                                                },
+                                                "overall_percentage": {
+                                                    "type": "number"
+                                                },
+                                                "budgets_count": {
+                                                    "type": "integer"
+                                                },
+                                                "over_budget_count": {
+                                                    "type": "integer"
+                                                },
+                                                "budgets": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories for a family",
+                "operationId": "4439c915d5debf61ba67eb6d9b1d999c",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "income",
+                                "expense"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Create a new category",
+                "operationId": "b298fcbfe5c4aaf8833353f52a8a81bd",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Custom Category"
+                                    },
+                                    "name_ur": {
+                                        "type": "string",
+                                        "example": "اپنی مرضی کی قسم"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense"
+                                        ],
+                                        "example": "expense"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "example": "star"
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "#FF5733"
+                                    },
+                                    "is_halal": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/categories/{category}": {
+            "put": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Update category",
+                "operationId": "efa8be4b8349167f839385cdd09ad0e7",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "icon": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    },
+                                    "is_halal": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Category updated successfully"
+                    },
+                    "403": {
+                        "description": "Cannot modify system categories"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Delete category",
+                "operationId": "1dc6a2653f349c3b7d27e49beb9eadee",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted successfully"
+                    },
+                    "403": {
+                        "description": "Cannot delete system categories"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/dashboard": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard overview",
+                "description": "Get comprehensive dashboard data including financial overview, transactions, budgets, bills, savings, and zakat status",
+                "operationId": "21c2816fedd9a9eb8b5a17a239551f55",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "financial_overview": {
+                                                    "properties": {
+                                                        "total_balance": {
+                                                            "type": "number"
+                                                        },
+                                                        "monthly_income": {
+                                                            "type": "number"
+                                                        },
+                                                        "monthly_expense": {
+                                                            "type": "number"
+                                                        },
+                                                        "net_income": {
+                                                            "type": "number"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "recent_transactions": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "budget_overview": {
+                                                    "type": "object"
+                                                },
+                                                "bills": {
+                                                    "properties": {
+                                                        "upcoming": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "overdue": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "upcoming_count": {
+                                                            "type": "integer"
+                                                        },
+                                                        "overdue_count": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "savings_overview": {
+                                                    "type": "object"
+                                                },
+                                                "category_expenses": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "monthly_trend": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "zakat_status": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "pending_approvals": {
+                                                    "type": "integer"
+                                                },
+                                                "family_members": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/insights": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get financial insights and recommendations",
+                "description": "Get AI-powered insights, financial health score, and personalized recommendations",
+                "operationId": "f8fe7137cb6dea6467f025fc6ab341a0",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "expense_comparison": {
+                                                    "properties": {
+                                                        "current_month": {
+                                                            "type": "number"
+                                                        },
+                                                        "previous_month": {
+                                                            "type": "number"
+                                                        },
+                                                        "change_percentage": {
+                                                            "type": "number"
+                                                        },
+                                                        "trend": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "top_spending_categories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "budget_alerts": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "financial_health_score": {
+                                                    "type": "integer"
+                                                },
+                                                "tips": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families": {
+            "get": {
+                "tags": [
+                    "Families"
+                ],
+                "summary": "Get all families",
+                "operationId": "674bba2c09275ef0b8e6f30ffc31063c",
+                "responses": {
+                    "200": {
+                        "description": "List of families"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Families"
+                ],
+                "summary": "Create family",
+                "operationId": "e4d5a2ee1f306b53d04973844e26a107",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "currency",
+                                    "locale"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "currency": {
+                                        "type": "string"
+                                    },
+                                    "locale": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Family created"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{id}": {
+            "get": {
+                "tags": [
+                    "Families"
+                ],
+                "summary": "Get family",
+                "operationId": "e7ec46b7975870acbd988f523ec91c2e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Family details"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Families"
+                ],
+                "summary": "Update family",
+                "operationId": "a611906229f9406d5930558588cfcbdd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Families"
+                ],
+                "summary": "Delete family",
+                "operationId": "605c9d5bd45984e1d5d1f085ee2cd28c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/members": {
+            "get": {
+                "tags": [
+                    "Family Members"
+                ],
+                "summary": "Get all family members",
+                "operationId": "6563b0280f9127d3bd241aef72ce5233",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Family Members"
+                ],
+                "summary": "Add a new family member",
+                "operationId": "95289c45ead56e507d32b86128660a95",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "relationship",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Fatima Ahmed"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "fatima@example.com",
+                                        "nullable": true
+                                    },
+                                    "relationship": {
+                                        "type": "string",
+                                        "enum": [
+                                            "owner",
+                                            "spouse",
+                                            "son",
+                                            "daughter",
+                                            "father",
+                                            "mother",
+                                            "brother",
+                                            "sister",
+                                            "dependent"
+                                        ],
+                                        "example": "spouse"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "owner",
+                                            "editor",
+                                            "viewer",
+                                            "approver"
+                                        ],
+                                        "example": "editor"
+                                    },
+                                    "date_of_birth": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1990-05-15"
+                                    },
+                                    "spending_limit": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Family member added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/members/{member}": {
+            "get": {
+                "tags": [
+                    "Family Members"
+                ],
+                "summary": "Get family member by ID",
+                "operationId": "f4465d271f328084a313e0c8c2b39466",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Family member not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Family Members"
+                ],
+                "summary": "Update family member",
+                "operationId": "5beb0a78a29b964b57a053f7f173416a",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "owner",
+                                            "editor",
+                                            "viewer",
+                                            "approver"
+                                        ]
+                                    },
+                                    "spending_limit": {
+                                        "type": "number"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Family member updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Family Members"
+                ],
+                "summary": "Remove family member",
+                "operationId": "9bc59dd851bfa1ded908761c8ab3bf6a",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Family member removed successfully"
+                    },
+                    "403": {
+                        "description": "Cannot remove family owner"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/savings-goals": {
+            "get": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Get all savings goals for a family",
+                "operationId": "ce016db7244c253aea24e73d61417753",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "hajj",
+                                "umrah",
+                                "education",
+                                "marriage",
+                                "emergency",
+                                "business",
+                                "other"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Create a new savings goal",
+                "operationId": "ee3566cd33a51dbbc5283991302af601",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "target_amount"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Hajj Fund"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "hajj",
+                                            "umrah",
+                                            "education",
+                                            "marriage",
+                                            "emergency",
+                                            "business",
+                                            "other"
+                                        ],
+                                        "example": "hajj"
+                                    },
+                                    "target_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 500000
+                                    },
+                                    "current_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0
+                                    },
+                                    "monthly_contribution": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10000
+                                    },
+                                    "target_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-06-01"
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Saving for Hajj pilgrimage"
+                                    },
+                                    "dua_reminder": {
+                                        "type": "string",
+                                        "example": "O Allah, make it easy for me to perform Hajj"
+                                    },
+                                    "auto_contribute": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "contribution_day": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Savings goal created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/savings-goals/{savingsGoal}": {
+            "get": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Get savings goal by ID",
+                "operationId": "6dbee5b905e288ad457311c1a555c09b",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "savingsGoal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Savings goal not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Update savings goal",
+                "operationId": "9d445baac1117ad965a2b38106d783e6",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "savingsGoal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "target_amount": {
+                                        "type": "number"
+                                    },
+                                    "monthly_contribution": {
+                                        "type": "number"
+                                    },
+                                    "target_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Savings goal updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Delete savings goal",
+                "operationId": "c8122f3cae02bcc56d50cfa82dbc4cfa",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "savingsGoal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Savings goal deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/savings-goals/{savingsGoal}/contribute": {
+            "post": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Add contribution to savings goal",
+                "operationId": "ccca42ff1accecd3b0eb55033dc0872b",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "savingsGoal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contribution added successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/savings-goals/overview": {
+            "get": {
+                "tags": [
+                    "Savings Goals"
+                ],
+                "summary": "Get savings goals overview",
+                "operationId": "6a77a19c6dba216f4fa0f6c712b14dbe",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_goals": {
+                                                    "type": "integer"
+                                                },
+                                                "completed_goals": {
+                                                    "type": "integer"
+                                                },
+                                                "in_progress_goals": {
+                                                    "type": "integer"
+                                                },
+                                                "total_target": {
+                                                    "type": "number"
+                                                },
+                                                "total_saved": {
+                                                    "type": "number"
+                                                },
+                                                "overall_progress": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get all transactions for a family",
+                "operationId": "52b88c81e2296bc7175bc4a1938250d8",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by transaction type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "income",
+                                "expense",
+                                "transfer"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "approved",
+                                "rejected"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "description": "Filter by category",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "account_id",
+                        "in": "query",
+                        "description": "Filter by account",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Filter from date",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Filter to date",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Create a new transaction",
+                "operationId": "5f2dd9b4af4e035b0b249ec74aeae919",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "account_id",
+                                    "category_id",
+                                    "type",
+                                    "amount",
+                                    "date"
+                                ],
+                                "properties": {
+                                    "account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense",
+                                            "transfer"
+                                        ],
+                                        "example": "expense"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1500.5
+                                    },
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-28"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Grocery shopping"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Monthly groceries from supermarket"
+                                    },
+                                    "transfer_to_account_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "is_recurring": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "recurring_frequency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "daily",
+                                            "weekly",
+                                            "monthly",
+                                            "yearly"
+                                        ]
+                                    },
+                                    "recurring_end_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "receipts[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Transaction created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/transactions/{transaction}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get transaction by ID",
+                "operationId": "c4af11c7803912fb0bdf688f2400cd85",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Update transaction",
+                "operationId": "67ad75be84b9abf493da13e91e77e420",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Delete transaction",
+                "operationId": "4faa9a957fa63d88f912d4e07a7c6cfd",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/transactions/{transaction}/approve": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Approve pending transaction",
+                "operationId": "81fe28e0adaa20f75a5fa0f2372003a2",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction approved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/transactions/{transaction}/reject": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Reject pending transaction",
+                "operationId": "0908445500710cf164ccb4a4059d4642",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction rejected successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/transactions/pending": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get pending transactions",
+                "operationId": "c23c83d95911d6e5c22ee7b5883832c7",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat": {
+            "get": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Get all zakat calculations for a family",
+                "operationId": "a41339909c392f52a96d962101c10a31",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Create new zakat calculation",
+                "operationId": "b5f96fc769ca29e4d6c1a6140c8fb4da",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "hijri_year",
+                                    "cash_in_hand",
+                                    "cash_in_bank",
+                                    "nisab_type"
+                                ],
+                                "properties": {
+                                    "hijri_year": {
+                                        "type": "integer",
+                                        "example": 1445
+                                    },
+                                    "cash_in_hand": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 50000
+                                    },
+                                    "cash_in_bank": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 150000
+                                    },
+                                    "gold_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100000
+                                    },
+                                    "silver_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0
+                                    },
+                                    "business_inventory": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0
+                                    },
+                                    "investments": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0
+                                    },
+                                    "loans_receivable": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0
+                                    },
+                                    "other_assets": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0
+                                    },
+                                    "debts": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 20000
+                                    },
+                                    "nisab_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "gold",
+                                            "silver"
+                                        ],
+                                        "example": "silver"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Zakat calculated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/{calculation}": {
+            "get": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Get zakat calculation by ID",
+                "operationId": "4e0bfb16426729de2cbe9727b3b13287",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "calculation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/auto-calculate": {
+            "post": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Auto-calculate zakat from accounts",
+                "operationId": "e10fc2449b683af5e33bdfc4f8e8fa8e",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zakat auto-calculated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/nisab-amount": {
+            "get": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Get current nisab amount",
+                "operationId": "535ad1ce65968e3fcf156a939962ffdf",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Nisab type",
+                        "schema": {
+                            "type": "string",
+                            "default": "silver",
+                            "enum": [
+                                "gold",
+                                "silver"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "currency",
+                        "in": "query",
+                        "description": "Currency code",
+                        "schema": {
+                            "type": "string",
+                            "default": "PKR"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/{calculation}/payments": {
+            "get": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Get all payments for a zakat calculation",
+                "operationId": "4eafec141bd5a0dccda21075ed87f4e9",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "calculation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Record zakat payment",
+                "operationId": "bbd430b891f5e93652d7f5459e6ead42",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "calculation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 2500
+                                    },
+                                    "payment_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "zakat",
+                                            "sadaqah",
+                                            "fitrah"
+                                        ]
+                                    },
+                                    "recipient_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "recipient_name": {
+                                        "type": "string"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Zakat payment recorded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/history": {
+            "get": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Get zakat history",
+                "operationId": "eb3dd2bf23f2bf48766668c1eab8b9c3",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/recipients": {
+            "get": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Get all zakat recipients",
+                "operationId": "52b4d45fa7a39b78936bd2b5a2ce3288",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Add new zakat recipient",
+                "operationId": "d963d5ec369a9842d703eb0c3609a330",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "category"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "contact": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "enum": [
+                                            "fuqara",
+                                            "masakin",
+                                            "amilin",
+                                            "muallaf",
+                                            "riqab",
+                                            "gharimin",
+                                            "fisabilillah",
+                                            "ibnus_sabil"
+                                        ]
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Zakat recipient added successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/families/{family}/zakat/recipients/{recipient}": {
+            "put": {
+                "tags": [
+                    "Zakat"
+                ],
+                "summary": "Update zakat recipient",
+                "operationId": "760894e37b321508a69a81dd26b89e7a",
+                "parameters": [
+                    {
+                        "name": "family",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "recipient",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "contact": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Zakat recipient updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Laravel Sanctum token authentication",
+                "name": "Authorization",
+                "in": "header",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "security": [
+        {
+            "sanctum": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication endpoints"
+        },
+        {
+            "name": "Families",
+            "description": "Family management"
+        },
+        {
+            "name": "Transactions",
+            "description": "Transaction management"
+        },
+        {
+            "name": "Budgets",
+            "description": "Budget management"
+        },
+        {
+            "name": "Bills",
+            "description": "Bill management"
+        },
+        {
+            "name": "Savings Goals",
+            "description": "Savings goals"
+        },
+        {
+            "name": "Zakat",
+            "description": "Zakat calculations"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard insights"
+        },
+        {
+            "name": "Accounts",
+            "description": "Accounts"
+        },
+        {
+            "name": "Categories",
+            "description": "Categories"
+        },
+        {
+            "name": "Family Members",
+            "description": "Family Members"
+        }
+    ]
+}

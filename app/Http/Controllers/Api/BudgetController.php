@@ -11,10 +11,9 @@ use App\Models\Family;
 use App\Services\BudgetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class BudgetController extends Controller
+class BudgetController extends ApiController
 {
     public function __construct(
         protected BudgetService $budgetService
@@ -52,7 +51,7 @@ class BudgetController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Budget")
+     *                 @OA\Items()
      *             )
      *         )
      *     ),
@@ -110,7 +109,7 @@ class BudgetController extends Controller
      *         description="Budget created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Budget")
+     *             @OA\Property(property="data", ref="#")
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -149,7 +148,7 @@ class BudgetController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Budget")
+     *         @OA\JsonContent(ref="#")
      *     ),
      *     @OA\Response(response=404, description="Budget not found")
      * )
@@ -281,7 +280,7 @@ class BudgetController extends Controller
      *                 @OA\Property(
      *                     property="budgets",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Budget")
+     *                     @OA\Items()
      *                 )
      *             )
      *         )
