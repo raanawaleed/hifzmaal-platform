@@ -100,4 +100,61 @@ class FamilyApiTest extends TestCase
             'id' => $family->id,
         ]);
     }
+
+    public function test_can_view_own_family(): void
+    {
+        $family = Family::factory()->create(['owner_id' => $this->user->id]);
+
+        $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/families/{$family->id}")
+            ->assertStatus(200)
+            ->assertJsonPath('data.id', $family->id);
+    }
+
+    public function test_cannot_view_another_users_family(): void
+    {
+        $otherUser = User::factory()->create();
+        $family = Family::factory()->create(['owner_id' => $otherUser->id]);
+
+        // IDOR regression: show() must reject non-members.
+        $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/families/{$family->id}")
+            ->assertStatus(403);
+    }
+
+    public function test_cannot_delete_another_users_family(): void
+    {
+        $otherUser = User::factory()->create();
+        $family = Family::factory()->create(['owner_id' => $otherUser->id]);
+
+        // IDOR regression: destroy() must reject non-owners.
+        $this->actingAs($this->user, 'sanctum')
+            ->deleteJson("/api/families/{$family->id}")
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('families', ['id' => $family->id, 'deleted_at' => null]);
+    }
+
+    public function test_member_can_view_family_but_not_delete_it(): void
+    {
+        $owner = User::factory()->create();
+        $family = Family::factory()->create(['owner_id' => $owner->id]);
+
+        $family->members()->create([
+            'user_id' => $this->user->id,
+            'name' => $this->user->name,
+            'email' => $this->user->email,
+            'relationship' => 'brother',
+            'role' => 'member',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/families/{$family->id}")
+            ->assertStatus(200);
+
+        $this->actingAs($this->user, 'sanctum')
+            ->deleteJson("/api/families/{$family->id}")
+            ->assertStatus(403);
+    }
 }

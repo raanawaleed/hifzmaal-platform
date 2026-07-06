@@ -21,7 +21,7 @@ class SavingsGoalPolicy
      */
     public function view(User $user, SavingsGoal $savingsGoal): bool
     {
-        return $user->hasAccessToFamily($goal->family);
+        return $user->hasAccessToFamily($savingsGoal->family);
     }
 
     /**
@@ -37,7 +37,7 @@ class SavingsGoalPolicy
      */
     public function update(User $user, SavingsGoal $savingsGoal): bool
     {
-        return in_array($user->getFamilyMemberRole($savingsGoal->family), ['owner', 'editor']);
+        return in_array($user->getFamilyMemberRole($savingsGoal->family), ['owner', 'member']);
     }
 
     /**
@@ -66,7 +66,7 @@ class SavingsGoalPolicy
 
     public function contribute(User $user, SavingsGoal $savingsGoal): bool
     {
-        return in_array($user->getFamilyMemberRole($savingsGoal->family), ['owner', 'editor', 'approver']);
+        return in_array($user->getFamilyMemberRole($savingsGoal->family), ['owner', 'member']);
     }
 
 }

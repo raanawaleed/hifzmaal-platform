@@ -97,16 +97,31 @@ class Bill extends Model
             && $this->status === 'pending';
     }
 
-    public function markAsPaid(?int $transactionId = null): void
+    public function markAsPaid(?int $transactionId = null): bool
     {
-        $this->update([
-            'status' => 'paid',
-            'last_paid_date' => now(),
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($transactionId) {
+            // Re-read under lock so two concurrent "pay" requests can't both
+            // mark the bill paid and generate two next-cycle bills.
+            $bill = static::whereKey($this->id)->lockForUpdate()->first();
 
-        if ($this->is_recurring) {
-            $this->generateNextBill();
-        }
+            if ($bill->status === 'paid') {
+                return false;
+            }
+
+            $bill->update([
+                'status' => 'paid',
+                'last_paid_date' => now(),
+                'transaction_id' => $transactionId,
+            ]);
+
+            if ($bill->is_recurring) {
+                $bill->generateNextBill();
+            }
+
+            $this->refresh();
+
+            return true;
+        });
     }
 
     protected function generateNextBill(): void
@@ -115,6 +130,7 @@ class Bill extends Model
             'monthly' => $this->due_date->copy()->addMonth(),
             'quarterly' => $this->due_date->copy()->addMonths(3),
             'yearly' => $this->due_date->copy()->addYear(),
+            default => $this->due_date->copy()->addMonth(),
         };
 
         static::create([

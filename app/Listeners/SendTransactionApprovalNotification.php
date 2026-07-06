@@ -28,10 +28,10 @@ class SendTransactionApprovalNotification
 
         $family = $event->transaction->family;
         
-        // Notify approvers
+        // Notify approvers (family owners)
         $family->members()
             ->where('is_active', true)
-            ->whereIn('role', ['owner', 'approver'])
+            ->where('role', 'owner')
             ->whereNotNull('user_id')
             ->each(function ($member) use ($event) {
                 $member->user->notify(new TransactionApprovalNeededNotification($event->transaction));

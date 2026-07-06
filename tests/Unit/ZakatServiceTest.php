@@ -3,9 +3,11 @@
 namespace Tests\Unit;
 
 use App\Models\Family;
+use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Services\ZakatService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ZakatServiceTest extends TestCase
@@ -22,7 +24,10 @@ class ZakatServiceTest extends TestCase
 
         $this->zakatService = new ZakatService();
         $this->user = User::factory()->create();
-        $this->family = Family::factory()->create(['owner_id' => $this->user->id]);
+        $this->family = Family::factory()->create([
+            'owner_id' => $this->user->id,
+            'currency' => 'PKR', // pin: nisab defaults differ per currency
+        ]);
     }
 
     public function test_can_calculate_zakat(): void
@@ -120,5 +125,70 @@ class ZakatServiceTest extends TestCase
         $this->assertEquals(50000, $calculation->cash_in_hand);
         $this->assertEquals(150000, $calculation->cash_in_bank);
         $this->assertEquals(200000, $calculation->total_assets);
+    }
+
+    public function test_overpayment_throws_validation_exception(): void
+    {
+        $calculation = $this->zakatService->calculateZakat($this->family, 1445, [
+            'cash_in_hand' => 100000,
+            'cash_in_bank' => 100000,
+            'debts' => 0,
+            'nisab_type' => 'silver',
+        ]);
+
+        // zakat_due is 5,000 — paying more must be rejected.
+        $this->expectException(ValidationException::class);
+
+        $this->zakatService->recordPayment($calculation, [
+            'amount' => 6000,
+            'type' => 'zakat',
+            'recipient_name' => 'Test Recipient',
+        ]);
+    }
+
+    public function test_concurrent_style_double_payment_cannot_exceed_due(): void
+    {
+        $calculation = $this->zakatService->calculateZakat($this->family, 1445, [
+            'cash_in_hand' => 100000,
+            'cash_in_bank' => 100000,
+            'debts' => 0,
+            'nisab_type' => 'silver',
+        ]);
+
+        $this->zakatService->recordPayment($calculation, [
+            'amount' => 4000,
+            'type' => 'zakat',
+            'recipient_name' => 'Recipient A',
+        ]);
+
+        // Second payment against a stale model: only 1,000 remains.
+        $this->expectException(ValidationException::class);
+
+        $this->zakatService->recordPayment($calculation, [
+            'amount' => 4000,
+            'type' => 'zakat',
+            'recipient_name' => 'Recipient B',
+        ]);
+    }
+
+    public function test_nisab_uses_platform_settings_rates(): void
+    {
+        PlatformSetting::set('zakat.metal_rates', [
+            'currency' => 'PKR',
+            'gold_per_gram' => 20000,
+            'silver_per_gram' => 250,
+        ]);
+        PlatformSetting::set('zakat.nisab', [
+            'gold_grams' => 87.48,
+            'silver_grams' => 612.36,
+        ]);
+
+        $this->assertEquals(153090.0, $this->zakatService->getNisabAmount('silver', 'PKR'));
+        $this->assertEquals(1749600.0, $this->zakatService->getNisabAmount('gold', 'PKR'));
+    }
+
+    public function test_nisab_falls_back_to_defaults_without_settings(): void
+    {
+        $this->assertEquals(95000.0, $this->zakatService->getNisabAmount('silver', 'PKR'));
     }
 }

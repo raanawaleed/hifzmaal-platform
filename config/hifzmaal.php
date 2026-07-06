@@ -8,8 +8,17 @@ return [
     */
 
     'name' => env('APP_NAME', 'HifzMaal'),
-    
+
     'version' => '1.0.0',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Superadmin
+    |--------------------------------------------------------------------------
+    | User with this email is granted the superadmin role on db:seed.
+    | You can also promote any user with: php artisan hifzmaal:superadmin <email>
+    */
+    'superadmin_email' => env('SUPERADMIN_EMAIL'),
 
     /*
     |--------------------------------------------------------------------------

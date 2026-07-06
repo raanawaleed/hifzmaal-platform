@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -12,6 +14,12 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        Role::findOrCreate('superadmin', 'web');
+
+        if ($email = config('hifzmaal.superadmin_email')) {
+            User::where('email', $email)->first()?->assignRole('superadmin');
+        }
     }
 }

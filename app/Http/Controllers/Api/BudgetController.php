@@ -117,7 +117,7 @@ class BudgetController extends ApiController
      */
     public function store(StoreBudgetRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $budget = $this->budgetService->createBudget($family, $request->validated());
 

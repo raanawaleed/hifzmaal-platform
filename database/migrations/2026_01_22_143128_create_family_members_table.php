@@ -21,7 +21,7 @@ return new class extends Migration
                 'owner', 'spouse', 'son', 'daughter', 
                 'father', 'mother', 'brother', 'sister', 'dependent'
             ]);
-            $table->enum('role', ['owner', 'editor', 'viewer', 'approver'])->default('viewer');
+            $table->enum('role', ['owner', 'member', 'viewer'])->default('member');
             $table->date('date_of_birth')->nullable();
             $table->boolean('is_active')->default(true);
             $table->decimal('spending_limit', 15, 2)->nullable();
@@ -30,6 +30,7 @@ return new class extends Migration
             
             $table->index(['family_id', 'user_id']);
             $table->unique(['family_id', 'email']);
+            $table->unique(['family_id', 'user_id']);
         });
     }
 

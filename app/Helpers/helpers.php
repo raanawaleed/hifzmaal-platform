@@ -32,7 +32,7 @@ if (!function_exists('hijri_year')) {
     function hijri_year(?Carbon $date = null): int
     {
         $date = $date ?? now();
-        return $date->year + 579; // Approximate conversion
+        return $date->year - 579; // e.g. 2026 CE ≈ 1447 AH
     }
 }
 
@@ -86,7 +86,7 @@ if (!function_exists('get_zakat_category_label')) {
     }
 }
 
-if (!function_exists('calculate_days_in_month')) {
+if (!function_exists('calculate_days_between')) {
     /**
      * Calculate days between dates
      */

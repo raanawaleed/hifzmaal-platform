@@ -11,11 +11,6 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class FamilyController extends ApiController
 {
-    public function __construct()
-    {
-        $this->authorizeResource(Family::class, 'family');
-    }
-
     /**
      * @OA\Get(
      *     path="/api/families",
@@ -95,6 +90,8 @@ class FamilyController extends ApiController
      */
     public function show(Family $family): FamilyResource
     {
+        $this->authorize('view', $family);
+
         $family->load(['owner', 'members', 'accounts']);
         return new FamilyResource($family);
     }
@@ -130,6 +127,8 @@ class FamilyController extends ApiController
      */
     public function destroy(Family $family): JsonResponse
     {
+        $this->authorize('delete', $family);
+
         $family->delete();
         return response()->json(['message' => 'Family deleted successfully']);
     }

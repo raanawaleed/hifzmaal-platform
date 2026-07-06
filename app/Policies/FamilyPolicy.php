@@ -66,7 +66,15 @@ class FamilyPolicy
 
     public function manageMembers(User $user, Family $family): bool
     {
-        return in_array($user->getFamilyMemberRole($family), ['owner', 'editor']);
+        return $user->getFamilyMemberRole($family) === 'owner';
     }
-    
+
+    /**
+     * Owners and members may create content (accounts, transactions, bills,
+     * budgets, goals, zakat records) inside the family; viewers may not.
+     */
+    public function createContent(User $user, Family $family): bool
+    {
+        return in_array($user->getFamilyMemberRole($family), ['owner', 'member']);
+    }
 }

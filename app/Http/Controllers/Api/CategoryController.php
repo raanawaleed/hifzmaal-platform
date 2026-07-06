@@ -103,7 +103,7 @@ class CategoryController extends ApiController
      */
     public function store(StoreCategoryRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $category = $family->categories()->create(array_merge($request->validated(), [
             'is_system' => false,
@@ -151,7 +151,7 @@ class CategoryController extends ApiController
      */
     public function update(UpdateCategoryRequest $request, Family $family, Category $category): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         if ($category->is_system) {
             return response()->json([

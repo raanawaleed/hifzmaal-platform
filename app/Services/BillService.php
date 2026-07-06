@@ -26,9 +26,9 @@ class BillService
         $bill->delete();
     }
 
-    public function markAsPaid(Bill $bill, ?int $transactionId = null): void
+    public function markAsPaid(Bill $bill, ?int $transactionId = null): bool
     {
-        $bill->markAsPaid($transactionId);
+        return $bill->markAsPaid($transactionId);
     }
 
     public function getUpcomingBills(Family $family, int $days = 7): array
@@ -122,9 +122,20 @@ class BillService
         }
 
         $memberCount = count($bill->split_members) + 1; // +1 for bill creator
-        $perPersonAmount = $bill->amount / $memberCount;
 
-        return array_fill(0, $memberCount, (float) $perPersonAmount);
+        // Split in integer paisa so the shares always sum back to the exact
+        // bill amount; the remainder goes to the first share(s).
+        $totalPaisa = (int) round($bill->amount * 100);
+        $basePaisa = intdiv($totalPaisa, $memberCount);
+        $remainder = $totalPaisa % $memberCount;
+
+        $shares = [];
+        for ($i = 0; $i < $memberCount; $i++) {
+            $paisa = $basePaisa + ($i < $remainder ? 1 : 0);
+            $shares[] = $paisa / 100;
+        }
+
+        return $shares;
     }
 
     public function getBillStatistics(Family $family): array

@@ -103,7 +103,7 @@ class ZakatController extends ApiController
      */
     public function store(StoreZakatCalculationRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $calculation = $this->zakatService->calculateZakat(
             $family,
@@ -175,7 +175,7 @@ class ZakatController extends ApiController
      */
     public function autoCalculate(Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $hijriYear = $this->zakatService->getCurrentHijriYear();
         $calculation = $this->zakatService->autoCalculateFromAccounts($family, $hijriYear);
@@ -270,7 +270,7 @@ class ZakatController extends ApiController
      */
     public function recordPayment(StoreZakatPaymentRequest $request, Family $family, ZakatCalculation $calculation): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         if ($calculation->family_id !== $family->id) {
             abort(404);
@@ -415,7 +415,7 @@ class ZakatController extends ApiController
      */
     public function storeRecipient(StoreZakatRecipientRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $recipient = $family->zakatRecipients()->create($request->validated());
 
@@ -458,7 +458,7 @@ class ZakatController extends ApiController
      */
     public function updateRecipient(UpdateZakatRecipientRequest $request, Family $family, ZakatRecipient $recipient): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         if ($recipient->family_id !== $family->id) {
             abort(404);

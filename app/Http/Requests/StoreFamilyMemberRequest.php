@@ -38,7 +38,7 @@ class StoreFamilyMemberRequest extends FormRequest
             ],
             'role' => [
                 'required',
-                'in:owner,editor,viewer,approver'
+                'in:owner,member,viewer'
             ],
             'date_of_birth' => [
                 'nullable',

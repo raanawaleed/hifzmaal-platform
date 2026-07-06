@@ -2,6 +2,8 @@
 
 namespace Tests\Unit;
 
+use App\Exceptions\InsufficientBalanceException;
+use App\Exceptions\InvalidTransactionException;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Family;
@@ -92,7 +94,7 @@ class TransactionServiceTest extends TestCase
             'name' => $this->user->name,
             'email' => $this->user->email,
             'relationship' => 'owner',
-            'role' => 'editor',
+            'role' => 'member',
             'spending_limit' => 1000,
         ]);
 
@@ -183,5 +185,142 @@ class TransactionServiceTest extends TestCase
         $this->assertCount(2, $expenses);
         $this->assertEquals(2000, $expenses[0]['total']); // Transport (sorted by total desc)
         $this->assertEquals(1500, $expenses[1]['total']); // Food
+    }
+
+    public function test_expense_exceeding_balance_throws(): void
+    {
+        $this->expectException(InsufficientBalanceException::class);
+
+        $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'expense',
+            'amount' => 99999,
+            'date' => now()->format('Y-m-d'),
+        ]);
+    }
+
+    public function test_transfer_moves_balance_between_accounts(): void
+    {
+        $target = Account::factory()->create([
+            'family_id' => $this->family->id,
+            'balance' => 500,
+        ]);
+
+        $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'transfer',
+            'amount' => 3000,
+            'date' => now()->format('Y-m-d'),
+            'transfer_to_account_id' => $target->id,
+        ]);
+
+        $this->assertEquals(7000, (float) $this->account->fresh()->balance);
+        $this->assertEquals(3500, (float) $target->fresh()->balance);
+    }
+
+    public function test_transfer_exceeding_balance_throws(): void
+    {
+        $target = Account::factory()->create([
+            'family_id' => $this->family->id,
+            'balance' => 0,
+        ]);
+
+        $this->expectException(InsufficientBalanceException::class);
+
+        $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'transfer',
+            'amount' => 99999,
+            'date' => now()->format('Y-m-d'),
+            'transfer_to_account_id' => $target->id,
+        ]);
+    }
+
+    public function test_transfer_to_same_account_throws(): void
+    {
+        $this->expectException(InvalidTransactionException::class);
+
+        $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'transfer',
+            'amount' => 100,
+            'date' => now()->format('Y-m-d'),
+            'transfer_to_account_id' => $this->account->id,
+        ]);
+    }
+
+    public function test_approving_transaction_with_insufficient_balance_throws(): void
+    {
+        $transaction = $this->family->transactions()->create([
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'created_by' => $this->user->id,
+            'type' => 'expense',
+            'amount' => 99999, // more than the 10,000 balance
+            'date' => now(),
+            'status' => 'pending',
+            'needs_approval' => true,
+        ]);
+
+        $this->expectException(InsufficientBalanceException::class);
+
+        $this->transactionService->approveTransaction($transaction);
+    }
+
+    public function test_updating_amount_rebalances_account(): void
+    {
+        $transaction = $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'expense',
+            'amount' => 1000,
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+        $this->assertEquals(9000, (float) $this->account->fresh()->balance);
+
+        $this->transactionService->updateTransaction($transaction, ['amount' => 400]);
+
+        // Old 1,000 reverted, new 400 applied.
+        $this->assertEquals(9600, (float) $this->account->fresh()->balance);
+        $this->assertEquals(400, (float) $transaction->fresh()->amount);
+    }
+
+    public function test_update_does_not_drop_empty_description(): void
+    {
+        $transaction = $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'expense',
+            'amount' => 100,
+            'date' => now()->format('Y-m-d'),
+            'description' => 'Original description',
+        ]);
+
+        // array_filter would silently drop '' — explicit key handling must not.
+        $this->transactionService->updateTransaction($transaction, ['description' => '']);
+
+        $this->assertSame('', (string) $transaction->fresh()->description);
+    }
+
+    public function test_deleting_approved_transaction_reverts_balance(): void
+    {
+        $transaction = $this->transactionService->createTransaction($this->family, [
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'expense',
+            'amount' => 750,
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+        $this->assertEquals(9250, (float) $this->account->fresh()->balance);
+
+        $this->transactionService->deleteTransaction($transaction);
+
+        $this->assertEquals(10000, (float) $this->account->fresh()->balance);
     }
 }

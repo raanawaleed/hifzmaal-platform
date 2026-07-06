@@ -37,7 +37,7 @@ class BudgetPolicy
      */
     public function update(User $user, Budget $budget): bool
     {
-        return in_array($user->getFamilyMemberRole($budget->family), ['owner', 'editor']);
+        return in_array($user->getFamilyMemberRole($budget->family), ['owner', 'member']);
     }
 
     /**

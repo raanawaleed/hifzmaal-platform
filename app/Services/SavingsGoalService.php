@@ -6,6 +6,7 @@ use App\Models\SavingsGoal;
 use App\Models\Family;
 use App\Events\SavingsGoalCompleted;
 use App\Events\SavingsGoalMilestone;
+use Illuminate\Support\Facades\DB;
 
 class SavingsGoalService
 {
@@ -30,17 +31,33 @@ class SavingsGoalService
         $goal->delete();
     }
 
-    public function contribute(SavingsGoal $goal, float $amount, ?int $transactionId = null): void
+    public function contribute(SavingsGoal $goal, float $amount): void
     {
-        $previousAmount = $goal->current_amount;
-        $goal->contribute($amount);
+        DB::transaction(function () use ($goal, $amount) {
+            // Lock the goal row so concurrent contributions can't overshoot.
+            $locked = SavingsGoal::whereKey($goal->id)->lockForUpdate()->first();
 
-        // Check for milestones (25%, 50%, 75%, 100%)
-        $this->checkMilestones($goal, $previousAmount);
+            $previousAmount = (float) $locked->current_amount;
 
-        if ($goal->isCompleted()) {
-            event(new SavingsGoalCompleted($goal));
-        }
+            // Clamp so the goal never exceeds its target.
+            $remaining = max(0, (float) $locked->target_amount - $previousAmount);
+            $applied = min($amount, $remaining);
+
+            if ($applied <= 0) {
+                return;
+            }
+
+            $locked->increment('current_amount', $applied);
+            $locked->refresh();
+
+            $this->checkMilestones($locked, $previousAmount);
+
+            if ($locked->isCompleted()) {
+                event(new SavingsGoalCompleted($locked));
+            }
+
+            $goal->refresh();
+        });
     }
 
     protected function checkMilestones(SavingsGoal $goal, float $previousAmount): void

@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,8 +14,36 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'family.access' => \App\Http\Middleware\EnsureFamilyAccess::class,
+            'active' => \App\Http\Middleware\EnsureUserIsActive::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        ]);
+
+        $middleware->api(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
+
+        $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson()
+        );
+
+        // A restricted foreign key blocked the delete — surface it as a
+        // validation-style error instead of a raw 500.
+        $exceptions->render(function (QueryException $e, Request $request) {
+            if ($request->is('api/*') && in_array($e->getCode(), ['23000', '23503'])) {
+                return response()->json([
+                    'message' => 'This record cannot be deleted because it is still in use.',
+                    'error' => 'resource_in_use',
+                ], 422);
+            }
+        });
     })->create();

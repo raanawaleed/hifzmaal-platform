@@ -31,7 +31,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'hijri_year_start_date' => 'date',
+        'is_active' => 'boolean',
+        'suspended_at' => 'datetime',
     ];
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('superadmin');
+    }
 
     public function ownedFamilies(): HasMany
     {
@@ -81,13 +88,11 @@ class User extends Authenticatable
 
     public function canApproveTransactions(Family $family): bool
     {
-        $role = $this->getFamilyMemberRole($family);
-        return in_array($role, ['owner', 'approver']);
+        return $this->getFamilyMemberRole($family) === 'owner';
     }
 
     public function canEditFamily(Family $family): bool
     {
-        $role = $this->getFamilyMemberRole($family);
-        return in_array($role, ['owner', 'editor', 'approver']);
+        return in_array($this->getFamilyMemberRole($family), ['owner', 'member']);
     }
 }

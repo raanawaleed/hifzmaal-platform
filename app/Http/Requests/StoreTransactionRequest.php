@@ -8,7 +8,7 @@ class StoreTransactionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('view', $this->route('family'));
+        return $this->user()->can('createContent', $this->route('family'));
     }
 
     public function rules(): array

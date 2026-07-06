@@ -30,7 +30,7 @@ class SendTransactionCreatedNotification
         // Notify family members with appropriate role
         $family->members()
             ->where('is_active', true)
-            ->whereIn('role', ['owner', 'editor', 'approver'])
+            ->whereIn('role', ['owner', 'member'])
             ->whereNotNull('user_id')
             ->each(function ($member) use ($event) {
                 $member->user->notify(new TransactionCreatedNotification($event->transaction));

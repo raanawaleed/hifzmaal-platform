@@ -11,7 +11,7 @@ class UpdateZakatCalculationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('family'));
+        return $this->user()->can('createContent', $this->route('family'));
     }
 
     /**

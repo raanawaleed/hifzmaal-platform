@@ -37,7 +37,7 @@ class BillPolicy
      */
     public function update(User $user, Bill $bill): bool
     {
-        return in_array($user->getFamilyMemberRole($bill->family), ['owner', 'editor']);
+        return in_array($user->getFamilyMemberRole($bill->family), ['owner', 'member']);
     }
 
     /**
@@ -66,6 +66,6 @@ class BillPolicy
 
     public function markAsPaid(User $user, Bill $bill): bool
     {
-        return in_array($user->getFamilyMemberRole($bill->family), ['owner', 'editor', 'approver']);
+        return in_array($user->getFamilyMemberRole($bill->family), ['owner', 'member']);
     }
 }

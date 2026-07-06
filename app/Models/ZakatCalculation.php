@@ -94,7 +94,7 @@ class ZakatCalculation extends Model
 
         // Calculate zakat if above nisab
         if ($this->zakatable_amount >= $this->nisab_amount) {
-            $this->zakat_due = $this->zakatable_amount * 0.025; // 2.5%
+            $this->zakat_due = round($this->zakatable_amount * config('hifzmaal.zakat.rate', 0.025), 2);
         } else {
             $this->zakat_due = 0;
         }

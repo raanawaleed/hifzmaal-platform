@@ -32,7 +32,7 @@ class UpdateFamilyMemberRequest extends FormRequest
                     return $query->where('family_id', $this->route('family')->id);
                 })->ignore($this->route('member')->id),
             ],
-            'role' => ['sometimes', 'in:owner,editor,viewer,approver'],
+            'role' => ['sometimes', 'in:owner,member,viewer'],
             'spending_limit' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'date_of_birth' => ['nullable', 'date', 'before:today'],

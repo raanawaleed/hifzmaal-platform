@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\Family;
+use App\Models\PlatformSetting;
 use App\Models\ZakatCalculation;
 use App\Models\ZakatPayment;
 use App\Events\ZakatCalculated;
 use App\Events\ZakatDueReminder;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ZakatService
 {
@@ -51,11 +52,14 @@ class ZakatService
     {
         try {
             $rates = $this->getCurrentMetalRates($currency);
+            $nisab = PlatformSetting::get('zakat.nisab', []);
+
+            $goldGrams = $nisab['gold_grams'] ?? self::GOLD_NISAB_GRAMS;
+            $silverGrams = $nisab['silver_grams'] ?? self::SILVER_NISAB_GRAMS;
 
             return match($type) {
-                'gold' => self::GOLD_NISAB_GRAMS * $rates['gold_per_gram'],
-                'silver' => self::SILVER_NISAB_GRAMS * $rates['silver_per_gram'],
-                default => self::SILVER_NISAB_GRAMS * $rates['silver_per_gram'],
+                'gold' => round($goldGrams * $rates['gold_per_gram'], 2),
+                default => round($silverGrams * $rates['silver_per_gram'], 2),
             };
         } catch (\Exception $e) {
             // Fallback to default values
@@ -65,26 +69,15 @@ class ZakatService
 
     protected function getCurrentMetalRates(string $currency = 'PKR'): array
     {
-        return Cache::remember("metal_rates_{$currency}", 3600, function () use ($currency) {
-            // Mock data - integrate with real API like metalpriceapi.com or local gold market API
-            return match($currency) {
-                'PKR' => [
-                    'gold_per_gram' => 9715,
-                    'silver_per_gram' => 155,
-                    'currency' => 'PKR',
-                ],
-                'USD' => [
-                    'gold_per_gram' => 65,
-                    'silver_per_gram' => 0.85,
-                    'currency' => 'USD',
-                ],
-                default => [
-                    'gold_per_gram' => 9715,
-                    'silver_per_gram' => 155,
-                    'currency' => 'PKR',
-                ],
-            };
-        });
+        // Superadmin-managed rates from the admin panel. Rates are stored in
+        // the platform's base currency; other currencies fall back to defaults.
+        $rates = PlatformSetting::get('zakat.metal_rates');
+
+        if ($rates && ($rates['currency'] ?? null) === $currency) {
+            return $rates;
+        }
+
+        throw new \RuntimeException("No metal rates configured for {$currency}");
     }
 
     protected function getDefaultNisabAmount(string $type, string $currency): float
@@ -100,24 +93,33 @@ class ZakatService
 
     public function recordPayment(ZakatCalculation $calculation, array $data): ZakatPayment
     {
-        $payment = $calculation->payments()->create([
-            'family_id' => $calculation->family_id,
-            'recipient_id' => $data['recipient_id'] ?? null,
-            'transaction_id' => $data['transaction_id'] ?? null,
-            'amount' => $data['amount'],
-            'payment_date' => $data['payment_date'] ?? now(),
-            'type' => $data['type'] ?? 'zakat',
-            'recipient_name' => $data['recipient_name'] ?? null,
-            'notes' => $data['notes'] ?? null,
-        ]);
+        return DB::transaction(function () use ($calculation, $data) {
+            // Lock the calculation so concurrent payments can't overpay.
+            $calculation = ZakatCalculation::whereKey($calculation->id)->lockForUpdate()->first();
 
-        // Update calculation
-        $calculation->increment('zakat_paid', $data['amount']);
-        $calculation->update([
-            'zakat_remaining' => max(0, $calculation->zakat_due - $calculation->zakat_paid)
-        ]);
+            if ($data['amount'] > $calculation->zakat_remaining) {
+                throw ValidationException::withMessages([
+                    'amount' => ["Payment exceeds remaining Zakat due ({$calculation->zakat_remaining})."],
+                ]);
+            }
 
-        return $payment;
+            $payment = $calculation->payments()->create([
+                'family_id' => $calculation->family_id,
+                'recipient_id' => $data['recipient_id'] ?? null,
+                'transaction_id' => $data['transaction_id'] ?? null,
+                'amount' => $data['amount'],
+                'payment_date' => $data['payment_date'] ?? now(),
+                'type' => $data['type'] ?? 'zakat',
+                'recipient_name' => $data['recipient_name'] ?? null,
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            $calculation->zakat_paid = $calculation->zakat_paid + $data['amount'];
+            $calculation->zakat_remaining = max(0, $calculation->zakat_due - $calculation->zakat_paid);
+            $calculation->save();
+
+            return $payment;
+        });
     }
 
     public function autoCalculateFromAccounts(Family $family, int $hijriYear): ZakatCalculation
@@ -174,6 +176,6 @@ class ZakatService
     {
         // Simple approximation - for production use proper Hijri calendar library
         $gregorianYear = now()->year;
-        return $gregorianYear + 579; // Approximate conversion
+        return $gregorianYear - 579; // e.g. 2026 CE ≈ 1447 AH
     }
 }

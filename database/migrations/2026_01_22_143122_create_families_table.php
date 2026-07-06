@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('currency', 3)->default('PKR');
             $table->string('locale', 5)->default('en');
-            $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('owner_id')->constrained('users')->restrictOnDelete();
             $table->json('settings')->nullable();
             $table->timestamps();
             $table->softDeletes();

@@ -122,7 +122,7 @@ class BillController extends ApiController
      */
     public function store(StoreBillRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
         $bill = $this->billService->createBill($family, $request->validated());
 
         return response()->json([
@@ -288,7 +288,14 @@ class BillController extends ApiController
             abort(404);
         }
 
-        $this->billService->markAsPaid($bill);
+        $wasPaid = $this->billService->markAsPaid($bill);
+
+        if (! $wasPaid) {
+            return response()->json([
+                'message' => 'This bill has already been paid.',
+                'data' => new BillResource($bill->fresh()),
+            ], 422);
+        }
 
         return response()->json([
             'message' => 'Bill marked as paid successfully',

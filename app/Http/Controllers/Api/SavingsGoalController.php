@@ -119,7 +119,7 @@ class SavingsGoalController extends ApiController
      */
     public function store(StoreSavingsGoalRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $goal = $this->savingsGoalService->createGoal($family, $request->validated());
 

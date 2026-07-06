@@ -17,15 +17,36 @@ class TransactionService
     public function createTransaction(Family $family, array $data): Transaction
     {
         return DB::transaction(function () use ($family, $data) {
-            // Validate account belongs to family
-            $account = $family->accounts()->findOrFail($data['account_id']);
-            
-            // Check balance for expense
-            if ($data['type'] === 'expense' && $account->balance < $data['amount']) {
+            // Lock the account row so concurrent requests cannot both pass
+            // the balance check (double-spend race).
+            $account = $family->accounts()
+                ->whereKey($data['account_id'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $transferTo = null;
+            if ($data['type'] === 'transfer') {
+                if (empty($data['transfer_to_account_id'])) {
+                    throw new InvalidTransactionException('A transfer requires a destination account.');
+                }
+
+                if ((int) $data['transfer_to_account_id'] === (int) $data['account_id']) {
+                    throw new InvalidTransactionException('Cannot transfer to the same account.');
+                }
+
+                $transferTo = $family->accounts()
+                    ->whereKey($data['transfer_to_account_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+            }
+
+            // Expenses and transfers both draw the balance down.
+            if (in_array($data['type'], ['expense', 'transfer'], true) && $account->balance < $data['amount']) {
                 throw new InsufficientBalanceException("Insufficient balance in {$account->name}");
             }
 
-            // Create transaction
+            $needsApproval = $this->needsApproval($family, $data);
+
             $transaction = $family->transactions()->create([
                 'account_id' => $data['account_id'],
                 'category_id' => $data['category_id'],
@@ -36,12 +57,12 @@ class TransactionService
                 'date' => $data['date'],
                 'description' => $data['description'] ?? null,
                 'notes' => $data['notes'] ?? null,
-                'transfer_to_account_id' => $data['transfer_to_account_id'] ?? null,
+                'transfer_to_account_id' => $transferTo?->id,
                 'is_recurring' => $data['is_recurring'] ?? false,
                 'recurring_frequency' => $data['recurring_frequency'] ?? null,
                 'recurring_end_date' => $data['recurring_end_date'] ?? null,
-                'needs_approval' => $this->needsApproval($family, $data),
-                'status' => $this->needsApproval($family, $data) ? 'pending' : 'approved',
+                'needs_approval' => $needsApproval,
+                'status' => $needsApproval ? 'pending' : 'approved',
             ]);
 
             // Handle receipts
@@ -69,27 +90,63 @@ class TransactionService
     public function updateTransaction(Transaction $transaction, array $data): Transaction
     {
         return DB::transaction(function () use ($transaction, $data) {
-            $oldAmount = $transaction->amount;
-            $oldType = $transaction->type;
-            $oldAccountId = $transaction->account_id;
+            $family = $transaction->family;
 
-            // Revert old balance update if was approved
+            // Only fields present in the payload are updated; array_filter is
+            // deliberately avoided so 0, '' and explicit nulls survive.
+            $updatable = ['account_id', 'category_id', 'type', 'amount', 'date',
+                'description', 'notes', 'transfer_to_account_id'];
+            $changes = array_intersect_key($data, array_flip($updatable));
+
+            $newType = $changes['type'] ?? $transaction->type;
+            $newAmount = $changes['amount'] ?? $transaction->amount;
+            $newAccountId = $changes['account_id'] ?? $transaction->account_id;
+            $newTransferToId = array_key_exists('transfer_to_account_id', $changes)
+                ? $changes['transfer_to_account_id']
+                : $transaction->transfer_to_account_id;
+
+            if ($newType === 'transfer') {
+                if (! $newTransferToId) {
+                    throw new InvalidTransactionException('A transfer requires a destination account.');
+                }
+                if ((int) $newTransferToId === (int) $newAccountId) {
+                    throw new InvalidTransactionException('Cannot transfer to the same account.');
+                }
+                $family->accounts()->whereKey($newTransferToId)->firstOrFail();
+            } else {
+                $changes['transfer_to_account_id'] = null;
+            }
+
+            if (isset($changes['account_id'])) {
+                $family->accounts()->whereKey($changes['account_id'])->firstOrFail();
+            }
+
+            // Lock every account involved (old and new) before touching balances.
+            $family->accounts()
+                ->whereIn('id', array_filter([
+                    $transaction->account_id,
+                    $transaction->transfer_to_account_id,
+                    $newAccountId,
+                    $newTransferToId,
+                ]))
+                ->lockForUpdate()
+                ->get();
+
             if ($transaction->status === 'approved') {
                 $this->revertAccountBalance($transaction);
             }
 
-            $transaction->update(array_filter([
-                'account_id' => $data['account_id'] ?? null,
-                'category_id' => $data['category_id'] ?? null,
-                'type' => $data['type'] ?? null,
-                'amount' => $data['amount'] ?? null,
-                'date' => $data['date'] ?? null,
-                'description' => $data['description'] ?? null,
-                'notes' => $data['notes'] ?? null,
-            ]));
+            $transaction->update($changes);
+            $transaction->refresh();
 
-            // Update balance with new values if approved
             if ($transaction->status === 'approved') {
+                // The reverted balance must still cover the new outflow.
+                $account = $family->accounts()->whereKey($transaction->account_id)->first();
+                if (in_array($transaction->type, ['expense', 'transfer'], true)
+                    && $account->balance < $transaction->amount) {
+                    throw new InsufficientBalanceException("Insufficient balance in {$account->name}");
+                }
+
                 $this->updateAccountBalance($transaction);
             }
 
@@ -104,6 +161,16 @@ class TransactionService
         }
 
         DB::transaction(function () use ($transaction) {
+            // Approving applies the balance move, so the funds must still be
+            // there — check under lock, or a pending expense could push the
+            // account negative.
+            $account = Account::whereKey($transaction->account_id)->lockForUpdate()->first();
+
+            if (in_array($transaction->type, ['expense', 'transfer'], true)
+                && $account->balance < $transaction->amount) {
+                throw new InsufficientBalanceException("Insufficient balance in {$account->name}");
+            }
+
             $transaction->update([
                 'status' => 'approved',
                 'approved_by' => auth()->id(),
@@ -125,6 +192,11 @@ class TransactionService
     {
         DB::transaction(function () use ($transaction) {
             if ($transaction->status === 'approved') {
+                Account::whereIn('id', array_filter([
+                    $transaction->account_id,
+                    $transaction->transfer_to_account_id,
+                ]))->lockForUpdate()->get();
+
                 $this->revertAccountBalance($transaction);
             }
 

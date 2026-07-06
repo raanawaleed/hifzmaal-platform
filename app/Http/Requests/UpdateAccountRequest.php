@@ -11,7 +11,7 @@ class UpdateAccountRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('family'));
+        return $this->user()->can('createContent', $this->route('family'));
     }
 
     /**
@@ -22,10 +22,10 @@ class UpdateAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'in:cash,bank,wallet,savings,investment'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'type' => ['sometimes', 'in:cash,bank,wallet,savings,investment'],
             'currency' => ['nullable', 'string', 'size:3', 'in:PKR,USD,EUR,GBP,SAR,AED,INR,BDT'],
-            'initial_balance' => ['required', 'numeric', 'min:0'],
+            'initial_balance' => ['sometimes', 'numeric', 'min:0'],
             'account_number' => ['nullable', 'string', 'max:255'],
             'bank_name' => ['nullable', 'string', 'max:255', 'required_if:type,bank'],
             'include_in_zakat' => ['boolean'],

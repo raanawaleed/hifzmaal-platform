@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Events\BillDueReminder;
+use App\Events\BillOverdue;
 use App\Events\BudgetThresholdReached;
 use App\Events\SavingsGoalCompleted;
 use App\Events\TransactionCreated;
 use App\Events\ZakatDueReminder;
 use App\Listeners\SendBillDueNotification;
+use App\Listeners\SendBillOverdueNotification;
 use App\Listeners\SendBudgetAlertNotification;
 use App\Listeners\SendSavingsGoalNotification;
 use App\Listeners\SendTransactionApprovalNotification;
@@ -32,6 +34,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         BillDueReminder::class => [
             SendBillDueNotification::class,
+        ],
+        BillOverdue::class => [
+            SendBillOverdueNotification::class,
         ],
         ZakatDueReminder::class => [
             SendZakatDueNotification::class,

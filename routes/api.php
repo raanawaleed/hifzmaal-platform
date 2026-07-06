@@ -13,22 +13,26 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ZakatController;
 use Illuminate\Support\Facades\Route;
 
-// Authentication Routes (Public)
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// Authentication Routes (Public, tightly throttled)
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+});
 
 // Protected Routes
-Route::middleware('auth:sanctum')->group(function () {
-    
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
+
     // Auth
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
     // Family Routes
     Route::apiResource('families', FamilyController::class);
-    
+
     // Family-scoped Routes
-    Route::prefix('families/{family}')->group(function () {
+    Route::prefix('families/{family}')->middleware('family.access')->group(function () {
         
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index']);
@@ -77,5 +81,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('zakat', ZakatController::class)->parameters([
             'zakat' => 'calculation'
         ]);
+    });
+
+    // Superadmin Panel (platform staff only)
+    Route::prefix('admin')->middleware('role:superadmin')->group(function () {
+        Route::get('dashboard', [\App\Http\Controllers\Api\Admin\DashboardController::class, 'index']);
+
+        Route::get('users', [\App\Http\Controllers\Api\Admin\UserController::class, 'index']);
+        Route::get('users/{user}', [\App\Http\Controllers\Api\Admin\UserController::class, 'show']);
+        Route::post('users/{user}/suspend', [\App\Http\Controllers\Api\Admin\UserController::class, 'suspend']);
+        Route::post('users/{user}/unsuspend', [\App\Http\Controllers\Api\Admin\UserController::class, 'unsuspend']);
+
+        Route::get('families', [\App\Http\Controllers\Api\Admin\FamilyController::class, 'index']);
+        Route::get('families/{family}', [\App\Http\Controllers\Api\Admin\FamilyController::class, 'show']);
+        Route::delete('families/{family}', [\App\Http\Controllers\Api\Admin\FamilyController::class, 'destroy']);
+
+        Route::apiResource('categories', \App\Http\Controllers\Api\Admin\CategoryController::class)
+            ->except(['show']);
+
+        Route::get('settings', [\App\Http\Controllers\Api\Admin\SettingController::class, 'index']);
+        Route::put('settings', [\App\Http\Controllers\Api\Admin\SettingController::class, 'update']);
     });
 });

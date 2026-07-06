@@ -94,7 +94,7 @@ class AccountController extends ApiController
      */
     public function store(StoreAccountRequest $request, Family $family): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         $account = $family->accounts()->create([
             'name' => $request->name,
@@ -186,7 +186,7 @@ class AccountController extends ApiController
      */
     public function update(UpdateAccountRequest $request, Family $family, Account $account): JsonResponse
     {
-        $this->authorize('update', $family);
+        $this->authorize('createContent', $family);
 
         if ($account->family_id !== $family->id) {
             abort(404);

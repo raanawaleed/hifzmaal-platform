@@ -41,12 +41,12 @@ class FamilyMember extends Model
 
     public function canApprove(): bool
     {
-        return in_array($this->role, ['owner', 'approver']);
+        return $this->role === 'owner';
     }
 
     public function canEdit(): bool
     {
-        return in_array($this->role, ['owner', 'editor', 'approver']);
+        return in_array($this->role, ['owner', 'member']);
     }
 
     public function canView(): bool

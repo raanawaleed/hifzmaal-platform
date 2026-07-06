@@ -88,6 +88,7 @@ class Family extends Model
     {
         return $this->transactions()
             ->where('type', 'income')
+            ->where('status', 'approved')
             ->whereMonth('date', $month)
             ->whereYear('date', $year)
             ->sum('amount');
@@ -97,6 +98,7 @@ class Family extends Model
     {
         return $this->transactions()
             ->where('type', 'expense')
+            ->where('status', 'approved')
             ->whereMonth('date', $month)
             ->whereYear('date', $year)
             ->sum('amount');
