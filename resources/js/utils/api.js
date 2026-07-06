@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { useApiStore } from '@/stores/api'
+import { useNotificationsStore } from '@/stores/notifications'
 
 const api = axios.create({
   baseURL: '/api',
@@ -24,17 +25,27 @@ api.interceptors.response.use(
     useApiStore().stopLoading()
     return response
   },
-  (error) => {
+  async (error) => {
     useApiStore().stopLoading()
 
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    const notifications = useNotificationsStore()
+
+    if (status === 401) {
       const authStore = useAuthStore()
-      authStore.token = null
-      authStore.user = null
-      localStorage.removeItem('token')
-      localStorage.removeItem('currentFamilyId')
-      window.location.href = '/login'
+      await authStore.clearSession()
+      const router = (await import('@/router/index.js')).default
+      router.push('/login')
+    } else if (status === 403) {
+      notifications.error(error.response.data?.message || "You don't have permission to do that.")
+    } else if (status === 429) {
+      notifications.error('Too many requests — please wait a moment and try again.')
+    } else if (status >= 500) {
+      notifications.error('Something went wrong on our side. Please try again.')
+    } else if (!error.response) {
+      notifications.error('Network error — check your connection and try again.')
     }
+    // 404/422 are left to the calling view (forms show field errors inline).
 
     return Promise.reject(error)
   }

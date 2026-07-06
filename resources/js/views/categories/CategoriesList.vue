@@ -10,9 +10,11 @@ import CardBoxModal from '@/components/CardBoxModal.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
@@ -40,7 +42,7 @@ const confirmDelete = async () => {
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiTagMultiple" title="Categories" main>
-        <BaseButton to="/categories/create" :icon="mdiPlus" label="New Category" color="success" rounded-full small />
+        <BaseButton v-if="familyStore.canEdit" to="/categories/create" :icon="mdiPlus" label="New Category" color="success" rounded-full small />
       </SectionTitleLineWithButton>
 
       <CardBoxModal

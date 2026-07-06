@@ -24,7 +24,7 @@ const form = reactive({
   name: '',
   email: '',
   relationship: 'son',
-  role: 'viewer',
+  role: 'member',
   date_of_birth: '',
   spending_limit: '',
   is_active: true,
@@ -42,8 +42,7 @@ const relationships = [
 ]
 const roles = [
   { id: 'viewer', label: 'Viewer — read only' },
-  { id: 'editor', label: 'Editor — can record transactions' },
-  { id: 'approver', label: 'Approver — can approve transactions' },
+  { id: 'member', label: 'Member — can add transactions and bills' },
 ]
 
 const loading = ref(false)

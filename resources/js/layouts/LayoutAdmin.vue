@@ -1,13 +1,12 @@
 <script setup>
-import { mdiForwardburger, mdiBackburger, mdiMenu, mdiShieldCrown } from '@mdi/js'
-import { ref, computed, onMounted } from 'vue'
+import { mdiForwardburger, mdiBackburger, mdiMenu } from '@mdi/js'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { menuAsideMain, menuAsideBottom } from '@/menuAside.js'
+import { menuAdminMain, menuAdminBottom } from '@/menuAdmin.js'
 import menuNavBar from '@/menuNavBar.js'
 import { useDarkModeStore } from '@/stores/darkMode.js'
 import { useAuthStore } from '@/stores/auth.js'
 import { useMainStore } from '@/stores/main.js'
-import { useFamilyStore } from '@/stores/family.js'
 import BaseIcon from '@/components/BaseIcon.vue'
 import NavBar from '@/components/NavBar.vue'
 import NavBarItemPlain from '@/components/NavBarItemPlain.vue'
@@ -19,29 +18,19 @@ const layoutAsidePadding = 'xl:pl-60'
 const darkModeStore = useDarkModeStore()
 const authStore = useAuthStore()
 const mainStore = useMainStore()
-const familyStore = useFamilyStore()
 
 const router = useRouter()
 
 const isAsideMobileExpanded = ref(false)
 const isAsideLgActive = ref(false)
 
-const menuBottom = computed(() => (
-  authStore.isSuperAdmin
-    ? [...menuAsideBottom, { to: '/admin', icon: mdiShieldCrown, label: 'Admin Panel' }]
-    : menuAsideBottom
-))
-
 onMounted(async () => {
-  if (authStore.isAuthenticated) {
-    if (!authStore.user) {
-      try {
-        await authStore.fetchUser()
-      } catch {}
-    }
-    mainStore.setUser(authStore.user || {})
-    await familyStore.ensureLoaded()
+  if (authStore.isAuthenticated && !authStore.user) {
+    try {
+      await authStore.fetchUser()
+    } catch {}
   }
+  mainStore.setUser(authStore.user || {})
 })
 
 router.beforeEach(() => {
@@ -57,11 +46,6 @@ const menuClick = (event, item) => {
   if (item.isLogout) {
     authStore.logout()
   }
-}
-
-const onFamilyChange = (event) => {
-  familyStore.setFamilyId(Number(event.target.value))
-  router.push('/dashboard')
 }
 </script>
 
@@ -90,43 +74,23 @@ const onFamilyChange = (event) => {
           <BaseIcon :path="mdiMenu" size="24" />
         </NavBarItemPlain>
 
-        <!-- Family switcher -->
         <NavBarItemPlain use-margin>
-          <div class="flex items-center gap-2">
-            <span class="hidden text-xs tracking-wide text-gray-500 uppercase md:inline dark:text-slate-400">
-              Family
-            </span>
-            <select
-              v-if="familyStore.hasFamily"
-              :value="familyStore.currentFamilyId"
-              class="h-9 rounded-sm border border-gray-300 bg-white px-2 pr-8 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800"
-              @change="onFamilyChange"
-            >
-              <option v-for="f in familyStore.families" :key="f.id" :value="f.id">
-                {{ f.name }}
-              </option>
-            </select>
-            <router-link
-              v-else
-              to="/families/create"
-              class="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400"
-            >
-              + Create family
-            </router-link>
-          </div>
+          <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-900 dark:text-amber-200">
+            Superadmin
+          </span>
         </NavBarItemPlain>
       </NavBar>
       <AsideMenu
         :is-aside-mobile-expanded="isAsideMobileExpanded"
         :is-aside-lg-active="isAsideLgActive"
-        :menu="menuAsideMain"
-        :menu-bottom="menuBottom"
+        :menu="menuAdminMain"
+        :menu-bottom="menuAdminBottom"
         @menu-click="menuClick"
         @aside-lg-close-click="isAsideLgActive = false"
       />
       <slot />
       <FooterBar>
-        HifzMaal — Islamic Family Finance
+        HifzMaal — Platform Administration
       </FooterBar>
     </div>
   </div>

@@ -1,10 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useFamilyStore } from '@/stores/family'
 
 const routes = [
   // ── Guest ──
   { path: '/login', name: 'login', component: () => import('@/views/auth/LoginView.vue'), meta: { guest: true } },
   { path: '/register', name: 'register', component: () => import('@/views/auth/RegisterView.vue'), meta: { guest: true } },
+  { path: '/forgot-password', name: 'forgot-password', component: () => import('@/views/auth/ForgotPasswordView.vue'), meta: { guest: true } },
+  { path: '/reset-password', name: 'reset-password', component: () => import('@/views/auth/ResetPasswordView.vue'), meta: { guest: true } },
 
   // ── Authenticated ──
   { path: '/', redirect: '/dashboard' },
@@ -61,6 +64,14 @@ const routes = [
   { path: '/zakat/recipients/:id/edit', name: 'zakat-recipients-edit', component: () => import('@/views/zakat/RecipientForm.vue'), props: true },
   { path: '/zakat/:id', name: 'zakat-detail', component: () => import('@/views/zakat/ZakatDetail.vue'), props: true },
 
+  // ── Superadmin panel ──
+  { path: '/admin', name: 'admin-dashboard', component: () => import('@/views/admin/AdminDashboard.vue'), meta: { superadmin: true } },
+  { path: '/admin/users', name: 'admin-users', component: () => import('@/views/admin/AdminUsersList.vue'), meta: { superadmin: true } },
+  { path: '/admin/users/:id', name: 'admin-user-detail', component: () => import('@/views/admin/AdminUserDetail.vue'), props: true, meta: { superadmin: true } },
+  { path: '/admin/families', name: 'admin-families', component: () => import('@/views/admin/AdminFamiliesList.vue'), meta: { superadmin: true } },
+  { path: '/admin/categories', name: 'admin-categories', component: () => import('@/views/admin/AdminCategoriesList.vue'), meta: { superadmin: true } },
+  { path: '/admin/settings', name: 'admin-settings', component: () => import('@/views/admin/AdminSettings.vue'), meta: { superadmin: true } },
+
   // 404
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/ErrorView.vue') },
 ]
@@ -73,14 +84,27 @@ const router = createRouter({
   },
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   if (!to.meta.guest && !authStore.token) {
     return { name: 'login' }
   }
+
   if (to.meta.guest && authStore.token) {
+    return { name: authStore.isSuperAdmin ? 'admin-dashboard' : 'dashboard' }
+  }
+
+  if (to.meta.superadmin && !authStore.isSuperAdmin) {
     return { name: 'dashboard' }
+  }
+
+  // Resolve families BEFORE any family-scoped view mounts. This kills the
+  // race where views checked hasFamily() while the list was still loading
+  // and rendered permanently empty.
+  if (!to.meta.guest && !to.meta.superadmin && authStore.token) {
+    const familyStore = useFamilyStore()
+    await familyStore.ensureLoaded()
   }
 })
 

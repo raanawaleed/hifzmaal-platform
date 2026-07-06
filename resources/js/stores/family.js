@@ -7,12 +7,23 @@ export const useFamilyStore = defineStore('family', {
       ? Number(localStorage.getItem('currentFamilyId'))
       : null,
     families: [],
-    loaded: false
+    loaded: false,
+    loadPromise: null
   }),
 
   getters: {
     currentFamily: (state) => state.families.find(f => f.id === state.currentFamilyId) || null,
-    hasFamily: (state) => state.families.length > 0
+    hasFamily: (state) => state.families.length > 0,
+    currentRole() {
+      return this.currentFamily?.current_user_role || null
+    },
+    // Viewers get a read-only UI; owners and members can create/edit.
+    canEdit() {
+      return ['owner', 'member'].includes(this.currentRole)
+    },
+    isOwner() {
+      return this.currentRole === 'owner'
+    }
   },
 
   actions: {
@@ -20,6 +31,20 @@ export const useFamilyStore = defineStore('family', {
       if (!id) return
       this.currentFamilyId = Number(id)
       localStorage.setItem('currentFamilyId', id)
+    },
+
+    /**
+     * Memoized loader: concurrent callers (router guard, layout, login)
+     * share one in-flight request, and once loaded it's a no-op.
+     */
+    async ensureLoaded() {
+      if (this.loaded) return
+      if (!this.loadPromise) {
+        this.loadPromise = this.loadUserFamilies().finally(() => {
+          this.loadPromise = null
+        })
+      }
+      await this.loadPromise
     },
 
     async loadUserFamilies() {
@@ -43,6 +68,7 @@ export const useFamilyStore = defineStore('family', {
       this.currentFamilyId = null
       this.families = []
       this.loaded = false
+      this.loadPromise = null
     }
   }
 })

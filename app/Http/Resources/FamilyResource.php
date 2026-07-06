@@ -26,6 +26,7 @@ class FamilyResource extends JsonResource
             ],
             'total_balance' => (float) $this->getTotalBalance(),
             'active_members' => $this->getActiveMembers(),
+            'current_user_role' => $request->user()?->getFamilyMemberRole($this->resource),
             'settings' => $this->settings,
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),

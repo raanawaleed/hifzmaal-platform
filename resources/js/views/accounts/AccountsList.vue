@@ -10,9 +10,11 @@ import CardBoxModal from '@/components/CardBoxModal.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
@@ -50,7 +52,7 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiWallet" title="Accounts" main>
-        <BaseButton to="/accounts/create" :icon="mdiPlus" label="New Account" color="success" rounded-full small />
+        <BaseButton v-if="familyStore.canEdit" to="/accounts/create" :icon="mdiPlus" label="New Account" color="success" rounded-full small />
       </SectionTitleLineWithButton>
 
       <CardBoxModal

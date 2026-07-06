@@ -11,14 +11,16 @@ import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
 
-const roleColors = { owner: 'success', approver: 'info', editor: 'warning', viewer: 'light' }
+const roleColors = { owner: 'success', member: 'info', viewer: 'light' }
 
 const load = async () => {
   if (!fapi.hasFamily()) return
@@ -45,7 +47,7 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiAccountGroup" title="Family Members" main>
-        <BaseButton to="/family-members/create" :icon="mdiPlus" label="Add Member" color="success" rounded-full small />
+        <BaseButton v-if="familyStore.canEdit" to="/family-members/create" :icon="mdiPlus" label="Add Member" color="success" rounded-full small />
       </SectionTitleLineWithButton>
 
       <CardBoxModal

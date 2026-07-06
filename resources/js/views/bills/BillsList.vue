@@ -11,9 +11,11 @@ import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
 import NotificationBar from '@/components/NotificationBar.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
@@ -64,7 +66,7 @@ const statusColor = { paid: 'success', pending: 'warning', overdue: 'danger' }
       <SectionTitleLineWithButton :icon="mdiReceiptText" title="Bills" main>
         <BaseButtons>
           <BaseButton to="/bills/statistics" :icon="mdiChartBar" label="Statistics" color="whiteDark" rounded-full small />
-          <BaseButton to="/bills/create" :icon="mdiPlus" label="New Bill" color="success" rounded-full small />
+          <BaseButton v-if="familyStore.canEdit" to="/bills/create" :icon="mdiPlus" label="New Bill" color="success" rounded-full small />
         </BaseButtons>
       </SectionTitleLineWithButton>
 

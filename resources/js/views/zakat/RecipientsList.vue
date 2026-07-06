@@ -9,9 +9,11 @@ import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 
@@ -45,7 +47,7 @@ onMounted(load)
       <SectionTitleLineWithButton :icon="mdiAccountHeart" title="Zakat Recipients" main>
         <BaseButtons>
           <BaseButton to="/zakat" label="Back to Zakat" color="whiteDark" rounded-full small />
-          <BaseButton to="/zakat/recipients/create" :icon="mdiPlus" label="New Recipient" color="success" rounded-full small />
+          <BaseButton v-if="familyStore.canEdit" to="/zakat/recipients/create" :icon="mdiPlus" label="New Recipient" color="success" rounded-full small />
         </BaseButtons>
       </SectionTitleLineWithButton>
 

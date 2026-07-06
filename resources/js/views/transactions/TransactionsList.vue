@@ -10,9 +10,11 @@ import CardBoxModal from '@/components/CardBoxModal.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
@@ -50,7 +52,7 @@ const statusColor = { approved: 'success', pending: 'warning', rejected: 'danger
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiSwapHorizontal" title="Transactions" main>
-        <BaseButton to="/transactions/create" :icon="mdiPlus" label="New Transaction" color="success" rounded-full small />
+        <BaseButton v-if="familyStore.canEdit" to="/transactions/create" :icon="mdiPlus" label="New Transaction" color="success" rounded-full small />
       </SectionTitleLineWithButton>
 
       <div class="mb-4 flex gap-2">

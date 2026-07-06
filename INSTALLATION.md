@@ -61,25 +61,51 @@ npm install
 npm run build
 ```
 
-### 7. Configure Queue Worker (Optional)
+### 7. Configure Queue Worker (Required in production)
 
-For background jobs:
+Notifications (bill reminders, budget alerts, approval requests) are queued.
+Without a worker they will never be delivered.
+
 ```bash
-# Start queue worker
+# Development
 php artisan queue:work
 
-# Or use supervisor for production
+# Production — supervise the worker so it restarts on failure.
+# /etc/supervisor/conf.d/hifzmaal-worker.conf:
+#
+# [program:hifzmaal-worker]
+# process_name=%(program_name)s_%(process_num)02d
+# command=php /var/www/hifzmaal/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+# autostart=true
+# autorestart=true
+# user=www-data
+# numprocs=1
+# redirect_stderr=true
+# stdout_logfile=/var/www/hifzmaal/storage/logs/worker.log
+# stopwaitsecs=3600
 ```
 
-### 8. Configure Scheduled Tasks
+### 8. Configure Scheduled Tasks (Required in production)
 
-Add to crontab:
+The scheduler drives bill due/overdue reminders, Zakat reminders, and
+savings auto-contributions. Add to crontab:
+
 ```bash
 crontab -e
 
 # Add this line
 * * * * * cd /path-to-hifzmaal && php artisan schedule:run >> /dev/null 2>&1
 ```
+
+### 8b. Create the Superadmin
+
+```bash
+php artisan hifzmaal:superadmin you@example.com
+```
+
+(Or set `SUPERADMIN_EMAIL` in `.env` before running `php artisan db:seed`.)
+The superadmin panel lives at `/admin` — manage users, families, system
+categories, and Zakat metal rates there.
 
 ### 9. Start Development Server
 ```bash
@@ -92,6 +118,12 @@ Visit: http://localhost:8000
 
 ### 1. Optimize Application
 ```bash
+# Build fresh assets and make sure the Vite dev-server marker is gone.
+# If public/hot exists on the server, the app serves assets from a dead
+# dev-server URL and the frontend breaks entirely.
+npm ci && npm run build
+rm -f public/hot
+
 # Cache configuration
 php artisan config:cache
 
@@ -109,7 +141,11 @@ composer install --optimize-autoloader --no-dev
 ```env
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=
+APP_URL=https://yourdomain.com
+SESSION_SECURE_COOKIE=true
+CACHE_STORE=database        # or redis
+QUEUE_CONNECTION=database   # or redis — worker required, see step 7
+MAIL_MAILER=smtp            # real provider; password reset needs it
 ```
 
 ### 3. Web Server Configuration

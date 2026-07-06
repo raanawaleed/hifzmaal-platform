@@ -13,9 +13,11 @@ import FormField from '@/components/FormField.vue'
 import FormControl from '@/components/FormControl.vue'
 import PillTag from '@/components/PillTag.vue'
 import NotificationBar from '@/components/NotificationBar.vue'
+import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items, extractErrors } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
+const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
@@ -85,7 +87,7 @@ const pct = (row) => {
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiPiggyBank" title="Savings Goals" main>
-        <BaseButton to="/savings-goals/create" :icon="mdiPlus" label="New Goal" color="success" rounded-full small />
+        <BaseButton v-if="familyStore.canEdit" to="/savings-goals/create" :icon="mdiPlus" label="New Goal" color="success" rounded-full small />
       </SectionTitleLineWithButton>
 
       <NotificationBar v-if="notice" :color="notice.color" @dismiss="notice = null">
