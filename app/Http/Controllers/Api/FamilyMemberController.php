@@ -8,8 +8,11 @@ use App\Http\Resources\FamilyMemberResource;
 use App\Http\Controllers\Api\Controller;
 use App\Models\Family;
 use App\Models\FamilyMember;
+use App\Notifications\FamilyInvitationNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class FamilyMemberController extends ApiController
 {
@@ -93,7 +96,29 @@ class FamilyMemberController extends ApiController
     {
         $this->authorize('manageMembers', $family);
 
+        if (! $family->canAddAnotherMember()) {
+            return response()->json([
+                'message' => 'This family is at its plan limit of '.$family->memberLimit().' member(s). Upgrade to Pro to add more.',
+                'error' => 'plan_limit_reached',
+            ], 403);
+        }
+
         $member = $family->members()->create($request->validated());
+
+        // A member added with an email but no linked account gets an
+        // invitation — they must accept it to actually log in and see
+        // this family. Members without an email (e.g. a young dependent
+        // tracked for budgeting only) never get one, by design.
+        if ($member->email) {
+            $member->forceFill([
+                'invitation_token' => Str::random(48),
+                'invitation_expires_at' => now()->addDays(7),
+            ])->save();
+
+            Notification::route('mail', $member->email)->notify(
+                new FamilyInvitationNotification($family, $request->user(), $member->role, $member->invitation_token)
+            );
+        }
 
         return response()->json([
             'message' => 'Family member added successfully',
@@ -230,5 +255,34 @@ class FamilyMemberController extends ApiController
         return response()->json([
             'message' => 'Family member removed successfully',
         ]);
+    }
+
+    /**
+     * Re-send (and reset the expiry of) a pending or expired invitation.
+     */
+    public function resendInvitation(Family $family, FamilyMember $member): JsonResponse
+    {
+        $this->authorize('manageMembers', $family);
+
+        if ($member->family_id !== $family->id) {
+            abort(404);
+        }
+
+        if (! $member->email || $member->user_id) {
+            return response()->json([
+                'message' => 'This member has no pending invitation to resend.',
+            ], 422);
+        }
+
+        $member->forceFill([
+            'invitation_token' => Str::random(48),
+            'invitation_expires_at' => now()->addDays(7),
+        ])->save();
+
+        Notification::route('mail', $member->email)->notify(
+            new FamilyInvitationNotification($family, request()->user(), $member->role, $member->invitation_token)
+        );
+
+        return response()->json(['message' => 'Invitation re-sent.']);
     }
 }

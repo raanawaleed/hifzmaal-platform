@@ -29,7 +29,33 @@ class FamilyMemberResource extends JsonResource
                 'name' => $this->user?->name,
                 'email' => $this->user?->email,
             ]),
+            'invitation_status' => $this->invitationStatus(),
             'created_at' => $this->created_at->toDateTimeString(),
         ];
+    }
+
+    /**
+     * null: no email on file, nothing to invite.
+     * accepted: linked to a real account.
+     * pending: invite sent, not yet accepted, still within its window.
+     * expired: invite sent but the 7-day window passed unaccepted.
+     */
+    protected function invitationStatus(): ?string
+    {
+        if (! $this->email) {
+            return null;
+        }
+
+        if ($this->user_id) {
+            return 'accepted';
+        }
+
+        if (! $this->invitation_token) {
+            return null;
+        }
+
+        return $this->invitation_expires_at && $this->invitation_expires_at->isPast()
+            ? 'expired'
+            : 'pending';
     }
 }

@@ -73,7 +73,9 @@ class BudgetController extends ApiController
             $query->current();
         }
 
-        $budgets = $query->orderBy('start_date', 'desc')->get();
+        // No pagination UI on this list yet — cap rather than paginate so a
+        // very long-lived family can't return an unbounded response.
+        $budgets = $query->orderBy('start_date', 'desc')->limit(500)->get();
 
         return BudgetResource::collection($budgets);
     }

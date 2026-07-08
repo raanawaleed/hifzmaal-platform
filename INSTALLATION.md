@@ -97,6 +97,30 @@ crontab -e
 * * * * * cd /path-to-hifzmaal && php artisan schedule:run >> /dev/null 2>&1
 ```
 
+### 8a. Configure Billing (Stripe)
+
+HifzMaal charges for the Pro plan in USD via Stripe Checkout + the Billing
+Portal (Laravel Cashier). To wire it up:
+
+1. In the [Stripe Dashboard](https://dashboard.stripe.com/products), create one
+   product ("HifzMaal Pro") with a monthly and a yearly recurring USD price.
+   Copy each price's ID (`price_...`).
+2. In `.env`, set `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_PRICE_PRO_MONTHLY`,
+   and `STRIPE_PRICE_PRO_YEARLY`.
+3. Add a webhook endpoint in Stripe pointing at
+   `https://your-domain.com/api/stripe/webhook`, subscribed to at least
+   `customer.subscription.*` and `invoice.payment_*` events. Copy its signing
+   secret into `STRIPE_WEBHOOK_SECRET`.
+4. Turn on the [Customer Portal](https://dashboard.stripe.com/settings/billing/portal)
+   in Stripe settings — the app links to it from `/billing` so subscribers can
+   update their card or cancel.
+5. `BILLING_TRIAL_DAYS`, `BILLING_FREE_MAX_FAMILIES`, and
+   `BILLING_FREE_MAX_MEMBERS` (in `.env`) control the trial length and Free
+   plan limits — see `config/billing.php`.
+
+Until real keys are set, the app runs fine and Free-plan limits still apply;
+only checkout/portal/webhooks will fail.
+
 ### 8b. Create the Superadmin
 
 ```bash

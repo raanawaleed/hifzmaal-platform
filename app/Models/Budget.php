@@ -11,6 +11,14 @@ class Budget extends Model
 {
     use HasFactory;
 
+    /**
+     * getSpentAmount() runs a SUM query; every other accessor below calls it,
+     * so BudgetResource alone would otherwise re-run that query 5x per row.
+     * Safe to cache per-instance — every call site fetches a fresh Budget
+     * right before reading these, so there's no mid-request staleness risk.
+     */
+    protected ?float $spentAmountCache = null;
+
     protected $fillable = [
         'family_id',
         'category_id',
@@ -54,7 +62,7 @@ class Budget extends Model
 
     public function getSpentAmount(): float
     {
-        return $this->category->transactions()
+        return $this->spentAmountCache ??= (float) $this->category->transactions()
             ->where('family_id', $this->family_id)
             ->where('type', 'expense')
             ->where('status', 'approved')

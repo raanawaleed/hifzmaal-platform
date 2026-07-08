@@ -9,10 +9,21 @@ const routes = [
   { path: '/forgot-password', name: 'forgot-password', component: () => import('@/views/auth/ForgotPasswordView.vue'), meta: { guest: true } },
   { path: '/reset-password', name: 'reset-password', component: () => import('@/views/auth/ResetPasswordView.vue'), meta: { guest: true } },
 
+  // ── Public regardless of auth state ──
+  { path: '/', name: 'landing', component: () => import('@/views/LandingView.vue'), meta: { public: true } },
+  { path: '/terms', name: 'terms', component: () => import('@/views/legal/TermsView.vue'), meta: { public: true } },
+  { path: '/privacy', name: 'privacy', component: () => import('@/views/legal/PrivacyView.vue'), meta: { public: true } },
+  {
+    path: '/invitations/accept',
+    name: 'invitation-accept',
+    component: () => import('@/views/invitations/AcceptInvitationView.vue'),
+    meta: { public: true },
+  },
+
   // ── Authenticated ──
-  { path: '/', redirect: '/dashboard' },
   { path: '/dashboard', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
   { path: '/profile', name: 'profile', component: () => import('@/views/ProfileView.vue') },
+  { path: '/billing', name: 'billing', component: () => import('@/views/billing/BillingView.vue') },
 
   // Accounts
   { path: '/accounts', name: 'accounts', component: () => import('@/views/accounts/AccountsList.vue') },
@@ -87,8 +98,14 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
+  // Accessible regardless of auth state — e.g. the invitation preview,
+  // which needs to work for someone who doesn't have an account yet.
+  if (to.meta.public) {
+    return
+  }
+
   if (!to.meta.guest && !authStore.token) {
-    return { name: 'login' }
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 
   if (to.meta.guest && authStore.token) {

@@ -62,7 +62,7 @@ class SavingsGoalController extends ApiController
     {
         $this->authorize('view', $family);
 
-        $query = $family->savingsGoals();
+        $query = $family->savingsGoals()->with('account');
 
         if ($request->has('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
@@ -72,7 +72,9 @@ class SavingsGoalController extends ApiController
             $query->where('type', $request->type);
         }
 
-        $goals = $query->orderBy('created_at', 'desc')->get();
+        // No pagination UI on this list yet — cap rather than paginate so a
+        // very long-lived family can't return an unbounded response.
+        $goals = $query->orderBy('created_at', 'desc')->limit(500)->get();
 
         return SavingsGoalResource::collection($goals);
     }

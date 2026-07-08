@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\QueuedResetPassword;
+use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
@@ -167,6 +170,26 @@ class AuthTest extends TestCase
             ->assertStatus(200);
     }
 
+    public function test_reset_password_email_renders_a_working_link(): void
+    {
+        // Notification::fake() alone would hide a broken toMail() — it never
+        // gets called. This app has no `password.reset` named route (it's
+        // API-only), so the notification must be told to use the SPA's own
+        // page — regression test for that exact bug.
+        Notification::fake();
+        $user = User::factory()->create();
+
+        $this->postJson('/api/forgot-password', ['email' => $user->email])
+            ->assertStatus(200);
+
+        Notification::assertSentTo($user, QueuedResetPassword::class, function (QueuedResetPassword $notification) use ($user) {
+            $url = $notification->toMail($user)->actionUrl;
+
+            return str_starts_with($url, config('app.frontend_url').'/reset-password?token=')
+                && str_contains($url, 'email='.urlencode($user->email));
+        });
+    }
+
     public function test_can_reset_password_with_valid_token(): void
     {
         $user = User::factory()->create();
@@ -199,5 +222,90 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_registration_starts_a_pro_trial(): void
+    {
+        $this->postJson('/api/register', [
+            'name' => 'Ahmed Ali',
+            'email' => 'ahmed@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertStatus(201);
+
+        $user = User::where('email', 'ahmed@example.com')->firstOrFail();
+
+        $this->assertNotNull($user->trial_ends_at);
+        $this->assertTrue($user->onGenericTrial());
+        $this->assertTrue($user->hasProAccess());
+    }
+
+    public function test_registration_sends_a_verification_email(): void
+    {
+        Notification::fake();
+
+        $this->postJson('/api/register', [
+            'name' => 'Ahmed Ali',
+            'email' => 'ahmed@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertStatus(201);
+
+        $user = User::where('email', 'ahmed@example.com')->firstOrFail();
+
+        Notification::assertSentTo($user, QueuedVerifyEmail::class);
+    }
+
+    public function test_can_resend_verification_email(): void
+    {
+        Notification::fake();
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/email/verification-notification')
+            ->assertStatus(200);
+
+        Notification::assertSentTo($user, QueuedVerifyEmail::class);
+    }
+
+    public function test_resend_verification_short_circuits_when_already_verified(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create(); // already verified by default
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/email/verification-notification')
+            ->assertStatus(200)
+            ->assertJson(['message' => 'Your email is already verified.']);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_signed_verification_link_verifies_email(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
+            'id' => $user->id,
+            'hash' => sha1($user->email),
+        ]);
+
+        $response = $this->get($url);
+
+        $response->assertRedirect();
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_verification_link_rejects_wrong_hash(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
+            'id' => $user->id,
+            'hash' => sha1('someone-else@example.com'),
+        ]);
+
+        $this->get($url)->assertRedirect();
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
 }

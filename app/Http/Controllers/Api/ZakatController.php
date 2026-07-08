@@ -55,7 +55,9 @@ class ZakatController extends ApiController
         $this->authorize('view', $family);
 
         $calculations = $family->zakatCalculations()
+            ->withCount('payments')
             ->orderBy('hijri_year', 'desc')
+            ->limit(500)
             ->get();
 
         return ZakatCalculationResource::collection($calculations);

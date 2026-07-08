@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Where the Vue SPA is served from. Used to build links in emails
+    // (invitations, password reset) and Stripe checkout/portal redirects.
+    'frontend_url' => rtrim(env('APP_FRONTEND_URL', env('APP_URL', 'http://localhost')), '/'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

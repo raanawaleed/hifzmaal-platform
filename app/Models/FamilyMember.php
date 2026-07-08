@@ -27,6 +27,8 @@ class FamilyMember extends Model
         'date_of_birth' => 'date',
         'is_active' => 'boolean',
         'spending_limit' => 'decimal:2',
+        'invitation_expires_at' => 'datetime',
+        'invitation_accepted_at' => 'datetime',
     ];
 
     public function family(): BelongsTo

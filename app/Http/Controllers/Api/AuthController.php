@@ -6,7 +6,9 @@ use OpenApi\Annotations as OA;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -61,6 +63,12 @@ class AuthController extends ApiController
             'password' => Hash::make($validated['password']),
             'locale' => $validated['locale'] ?? 'en',
         ]);
+
+        // Not mass-assignable on purpose (billing field); no-card-required
+        // trial — Cashier carries it into the first real subscription too.
+        $user->forceFill([
+            'trial_ends_at' => now()->addDays((int) config('billing.trial_days')),
+        ])->save();
 
         event(new Registered($user));
 
@@ -246,5 +254,89 @@ class AuthController extends ApiController
         }
 
         return response()->json(['message' => 'Your password has been reset. Please log in again.']);
+    }
+
+    /**
+     * Resend the verification email to the authenticated user.
+     */
+    public function resendVerificationEmail(Request $request): JsonResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Your email is already verified.']);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Verification link sent. Please check your inbox.']);
+    }
+
+    /**
+     * Handle the signed link from the verification email. Not behind
+     * auth:sanctum on purpose — the browser opening this link has no API
+     * token, only the signature + hash-of-email prove ownership.
+     */
+    public function verifyEmail(Request $request, int $id, string $hash): RedirectResponse
+    {
+        $frontend = config('app.frontend_url');
+        $user = User::find($id);
+
+        if (! $user || ! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            return redirect($frontend.'/login?verified=0');
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        return redirect($frontend.'/login?verified=1');
+    }
+
+    /**
+     * Permanently delete the authenticated user's account. Blocked while
+     * they still own a family — ownership must be transferred or the
+     * family deleted first, otherwise its data would be orphaned.
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = $request->user();
+
+        if (! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['The provided password is incorrect.'],
+            ]);
+        }
+
+        if ($user->ownedFamilies()->exists()) {
+            throw ValidationException::withMessages([
+                'password' => ['Delete or transfer ownership of every family you own before deleting your account.'],
+            ]);
+        }
+
+        if ($user->subscribed('default')) {
+            $user->subscription('default')->cancelNow();
+        }
+
+        $user->tokens()->delete();
+        $user->familyMemberships()->update(['is_active' => false]);
+
+        // Anonymize rather than hard-delete: transactions this user created
+        // or approved in families they don't own still need a valid
+        // created_by/approved_by (restrict-on-delete FK) for the audit
+        // trail. Soft-deleting afterwards blocks login and hides the row.
+        $user->forceFill([
+            'name' => 'Deleted User',
+            'email' => 'deleted-'.$user->id.'-'.Str::random(8).'@deleted.hifzmaal.invalid',
+            'password' => Hash::make(Str::random(40)),
+            'is_active' => false,
+        ])->save();
+
+        $user->delete();
+
+        return response()->json(['message' => 'Your account has been deleted.']);
     }
 }

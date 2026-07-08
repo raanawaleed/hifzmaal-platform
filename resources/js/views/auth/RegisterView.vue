@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { mdiAccount, mdiEmail, mdiAsterisk, mdiTranslate } from '@mdi/js'
 import SectionFullScreen from '@/components/SectionFullScreen.vue'
 import CardBox from '@/components/CardBox.vue'
@@ -13,10 +14,11 @@ import { useAuthStore } from '@/stores/auth'
 import { extractErrors } from '@/utils/familyApi'
 
 const authStore = useAuthStore()
+const route = useRoute()
 
 const form = reactive({
   name: '',
-  email: '',
+  email: route.query.email || '',
   password: '',
   password_confirmation: '',
   locale: 'en',
@@ -36,7 +38,7 @@ const submit = async () => {
   loading.value = true
   errors.value = {}
   try {
-    await authStore.register(form)
+    await authStore.register(form, route.query.redirect)
   } catch (err) {
     errors.value = extractErrors(err)
   } finally {
@@ -112,6 +114,13 @@ const submit = async () => {
           <FormControl v-model="form.locale" :icon="mdiTranslate" :options="locales" />
         </FormField>
 
+        <p class="mb-4 text-xs text-gray-500 dark:text-slate-400">
+          By creating an account you agree to our
+          <router-link to="/terms" class="text-emerald-600 hover:underline">Terms of Service</router-link>
+          and
+          <router-link to="/privacy" class="text-emerald-600 hover:underline">Privacy Policy</router-link>.
+        </p>
+
         <template #footer>
           <BaseButtons>
             <BaseButton
@@ -120,7 +129,12 @@ const submit = async () => {
               :label="loading ? 'Creating…' : 'Create Account'"
               :disabled="loading"
             />
-            <BaseButton to="/login" color="success" outline label="Sign in instead" />
+            <BaseButton
+              :to="{ path: '/login', query: route.query }"
+              color="success"
+              outline
+              label="Sign in instead"
+            />
           </BaseButtons>
         </template>
       </CardBox>

@@ -10,6 +10,7 @@ import {
   mdiHomeGroup,
   mdiAccountGroup,
   mdiTagMultiple,
+  mdiCreditCardOutline,
 } from '@mdi/js'
 
 export const menuAsideMain = [
@@ -56,6 +57,11 @@ export const menuAsideMain = [
 ]
 
 export const menuAsideBottom = [
+  {
+    to: '/billing',
+    icon: mdiCreditCardOutline,
+    label: 'Billing',
+  },
   {
     to: '/families',
     icon: mdiHomeGroup,

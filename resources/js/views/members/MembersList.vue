@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { mdiAccountGroup, mdiPlus, mdiPencil, mdiTrashCan } from '@mdi/js'
+import { mdiAccountGroup, mdiPlus, mdiPencil, mdiTrashCan, mdiEmailSync } from '@mdi/js'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionMain from '@/components/SectionMain.vue'
 import SectionTitleLineWithButton from '@/components/SectionTitleLineWithButton.vue'
@@ -12,15 +12,20 @@ import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useFamilyStore } from '@/stores/family'
+import { useNotificationsStore } from '@/stores/notifications'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
 const familyStore = useFamilyStore()
+const notifications = useNotificationsStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
+const resendingId = ref(null)
 
 const roleColors = { owner: 'success', member: 'info', viewer: 'light' }
+const invitationColors = { accepted: 'success', pending: 'info', expired: 'warning' }
+const invitationLabels = { accepted: 'joined', pending: 'invited', expired: 'invite expired' }
 
 const load = async () => {
   if (!fapi.hasFamily()) return
@@ -38,6 +43,19 @@ const confirmDelete = async () => {
   await fapi.delete(`/members/${deleteTarget.value.id}`)
   deleteTarget.value = null
   await load()
+}
+
+const resendInvitation = async (row) => {
+  resendingId.value = row.id
+  try {
+    await fapi.post(`/members/${row.id}/resend-invitation`)
+    notifications.success(`Invitation re-sent to ${row.email}.`)
+    await load()
+  } catch (err) {
+    notifications.error(err.response?.data?.message || 'Could not resend the invitation.')
+  } finally {
+    resendingId.value = null
+  }
 }
 
 const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
@@ -72,6 +90,7 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
               <th>Role</th>
               <th>Spending Limit</th>
               <th>Status</th>
+              <th>Invite</th>
               <th />
             </tr>
           </thead>
@@ -93,8 +112,25 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
                   small
                 />
               </td>
+              <td data-label="Invite">
+                <PillTag
+                  v-if="row.invitation_status"
+                  :color="invitationColors[row.invitation_status] || 'light'"
+                  :label="invitationLabels[row.invitation_status] || row.invitation_status"
+                  small
+                />
+                <span v-else class="text-xs text-gray-400 dark:text-slate-500">—</span>
+              </td>
               <td class="whitespace-nowrap before:hidden lg:w-1">
                 <BaseButtons type="justify-start lg:justify-end" no-wrap>
+                  <BaseButton
+                    v-if="row.invitation_status === 'pending' || row.invitation_status === 'expired'"
+                    color="info"
+                    :icon="mdiEmailSync"
+                    small
+                    :disabled="resendingId === row.id"
+                    @click="resendInvitation(row)"
+                  />
                   <BaseButton color="info" :icon="mdiPencil" small :to="`/family-members/${row.id}/edit`" />
                   <BaseButton color="danger" :icon="mdiTrashCan" small @click="deleteTarget = row" />
                 </BaseButtons>

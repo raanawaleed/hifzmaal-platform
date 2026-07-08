@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
         $middleware->web(append: [
@@ -30,6 +31,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->throttleApi();
+
+        // INSTALLATION.md's deployment is nginx (or similar) reverse-proxying
+        // to php-fpm on the same box. Without this, every request looks like
+        // it comes from nginx's own address, so $request->ip() returns the
+        // same value for every visitor — collapsing the per-IP throttles on
+        // /login, /register, etc. into one shared bucket (one abusive client
+        // can lock out everyone). Trusting '*' is safe here because nothing
+        // but your own reverse proxy can reach php-fpm directly.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

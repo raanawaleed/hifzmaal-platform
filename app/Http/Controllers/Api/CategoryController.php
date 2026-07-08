@@ -60,7 +60,7 @@ class CategoryController extends ApiController
             $query->where('type', $request->type);
         }
 
-        $categories = $query->ordered()->get();
+        $categories = $query->with('parent')->withCount('children')->ordered()->get();
 
         return CategoryResource::collection($categories);
     }

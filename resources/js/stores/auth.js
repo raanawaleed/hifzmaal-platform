@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('user', JSON.stringify(user))
     },
 
-    async login(credentials) {
+    async login(credentials, redirect) {
       const response = await api.post('/login', credentials)
       this.token = response.data.token
       this.setUser(response.data.user)
@@ -28,17 +28,17 @@ export const useAuthStore = defineStore('auth', {
       // Load families after login (import inside action to avoid circular dep)
       const { useFamilyStore } = await import('./family')
       await useFamilyStore().ensureLoaded()
-      router.push(this.isSuperAdmin ? '/admin' : '/dashboard')
+      router.push(redirect || (this.isSuperAdmin ? '/admin' : '/dashboard'))
     },
 
-    async register(data) {
+    async register(data, redirect) {
       const response = await api.post('/register', data)
       this.token = response.data.token
       this.setUser(response.data.user)
       localStorage.setItem('token', this.token)
       const { useFamilyStore } = await import('./family')
       await useFamilyStore().ensureLoaded()
-      router.push('/dashboard')
+      router.push(redirect || '/dashboard')
     },
 
     async logout() {

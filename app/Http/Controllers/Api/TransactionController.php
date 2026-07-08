@@ -96,7 +96,7 @@ class TransactionController extends ApiController
         $this->authorize('view', $family);
 
         $query = $family->transactions()
-            ->with(['account', 'category', 'creator', 'approver']);
+            ->with(['account', 'category', 'creator', 'approver', 'transferToAccount', 'media']);
 
         if ($request->has('type')) {
             $query->where('type', $request->type);
@@ -419,7 +419,7 @@ class TransactionController extends ApiController
         $this->authorize('view', $family);
 
         $transactions = $family->transactions()
-            ->with(['account', 'category', 'creator'])
+            ->with(['account', 'category', 'creator', 'transferToAccount', 'media'])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();

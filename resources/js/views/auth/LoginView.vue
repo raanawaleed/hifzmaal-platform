@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { mdiEmail, mdiAsterisk } from '@mdi/js'
 import SectionFullScreen from '@/components/SectionFullScreen.vue'
 import CardBox from '@/components/CardBox.vue'
@@ -13,9 +14,10 @@ import LayoutGuest from '@/layouts/LayoutGuest.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const route = useRoute()
 
 const form = reactive({
-  email: '',
+  email: route.query.email || '',
   password: '',
 })
 
@@ -26,7 +28,7 @@ const submit = async () => {
   loading.value = true
   error.value = ''
   try {
-    await authStore.login(form)
+    await authStore.login(form, route.query.redirect)
   } catch (err) {
     error.value =
       err.response?.data?.errors?.email?.[0] ||
@@ -88,7 +90,12 @@ const submit = async () => {
               :label="loading ? 'Signing in…' : 'Sign In'"
               :disabled="loading"
             />
-            <BaseButton to="/register" color="success" outline label="Create account" />
+            <BaseButton
+              :to="{ path: '/register', query: route.query }"
+              color="success"
+              outline
+              label="Create account"
+            />
             <BaseButton to="/forgot-password" color="success" outline label="Forgot password?" />
           </BaseButtons>
         </template>

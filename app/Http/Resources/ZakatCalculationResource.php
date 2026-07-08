@@ -41,7 +41,10 @@ class ZakatCalculationResource extends JsonResource
             'completion_percentage' => round($this->getCompletionPercentage(), 2),
             'asset_details' => $this->asset_details,
             'notes' => $this->notes,
-            'payments_count' => $this->payments()->count(),
+            // Use the eager-loaded count from ->withCount('payments') where
+            // the controller set it up (avoids a query per row in listings);
+            // fall back to a live count for single-record endpoints.
+            'payments_count' => $this->payments_count ?? $this->payments()->count(),
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
         ];

@@ -63,7 +63,7 @@ class BillController extends ApiController
     {
         $this->authorize('view', $family);
 
-        $query = $family->bills()->with('category');
+        $query = $family->bills()->with(['category', 'account']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -73,7 +73,9 @@ class BillController extends ApiController
             $query->where('type', $request->type);
         }
 
-        $bills = $query->orderBy('due_date')->get();
+        // No pagination UI on this list yet — cap rather than paginate so a
+        // very long-lived family can't return an unbounded response.
+        $bills = $query->orderBy('due_date')->limit(500)->get();
 
         return BillResource::collection($bills);
     }

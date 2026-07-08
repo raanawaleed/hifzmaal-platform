@@ -3,15 +3,18 @@
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillController;
+use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\FamilyController;
 use App\Http\Controllers\Api\FamilyMemberController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\SavingsGoalController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ZakatController;
 use Illuminate\Support\Facades\Route;
+use Laravel\Cashier\Http\Controllers\WebhookController as StripeWebhookController;
 
 // Authentication Routes (Public, tightly throttled)
 Route::middleware('throttle:5,1')->group(function () {
@@ -21,12 +24,33 @@ Route::middleware('throttle:5,1')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
+// Stripe calls this directly — no session, no Sanctum token. Signature is
+// verified inside Cashier's controller using STRIPE_WEBHOOK_SECRET.
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
+    ->name('cashier.webhook');
+
+// Public invitation preview — lets someone without an account yet see
+// what they're being invited to before logging in or registering.
+Route::get('/invitations/{token}', [InvitationController::class, 'show'])
+    ->middleware('throttle:20,1');
+
 // Protected Routes
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     // Auth
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])
+        ->middleware('throttle:6,1');
+    Route::delete('/account', [AuthController::class, 'deleteAccount']);
+    Route::post('/invitations/{token}/accept', [InvitationController::class, 'accept']);
+
+    // Billing (Stripe, USD — see config/billing.php)
+    Route::prefix('billing')->group(function () {
+        Route::get('status', [BillingController::class, 'status']);
+        Route::post('checkout', [BillingController::class, 'checkout'])->middleware('verified');
+        Route::get('portal', [BillingController::class, 'portal']);
+    });
 
     // Family Routes
     Route::apiResource('families', FamilyController::class);
@@ -39,6 +63,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('insights', [DashboardController::class, 'insights']);
         
         // Family Members
+        Route::post('members/{member}/resend-invitation', [FamilyMemberController::class, 'resendInvitation']);
         Route::apiResource('members', FamilyMemberController::class);
         
         // Accounts

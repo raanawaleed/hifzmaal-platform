@@ -29,7 +29,9 @@ class CategoryResource extends JsonResource
                 'id' => $this->parent?->id,
                 'name' => $this->parent?->name,
             ]),
-            'children_count' => $this->children()->count(),
+            // Use the eager-loaded count from ->withCount('children') where
+            // the controller set it up; fall back to a live count otherwise.
+            'children_count' => $this->children_count ?? $this->children()->count(),
             'created_at' => $this->created_at->toDateTimeString(),
         ];
     }

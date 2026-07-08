@@ -56,6 +56,13 @@ class FamilyController extends ApiController
      */
     public function store(StoreFamilyRequest $request): JsonResponse
     {
+        if (! $request->user()->canCreateAnotherFamily()) {
+            return response()->json([
+                'message' => 'Your plan allows '.$request->user()->familyLimit().' family workspace(s). Upgrade to Pro to create more.',
+                'error' => 'plan_limit_reached',
+            ], 403);
+        }
+
         $family = Family::create([
             'name' => $request->name,
             'currency' => $request->currency,
@@ -108,6 +115,7 @@ class FamilyController extends ApiController
      */
     public function update(UpdateFamilyRequest $request, Family $family): JsonResponse
     {
+        // Authorization already happened in UpdateFamilyRequest::authorize().
         $family->update($request->validated());
         return response()->json([
             'message' => 'Family updated successfully',

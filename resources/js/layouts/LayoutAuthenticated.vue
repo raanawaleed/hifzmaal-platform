@@ -13,6 +13,7 @@ import NavBar from '@/components/NavBar.vue'
 import NavBarItemPlain from '@/components/NavBarItemPlain.vue'
 import AsideMenu from '@/components/AsideMenu.vue'
 import FooterBar from '@/components/FooterBar.vue'
+import EmailVerificationBanner from '@/components/EmailVerificationBanner.vue'
 
 const layoutAsidePadding = 'xl:pl-60'
 
@@ -124,6 +125,7 @@ const onFamilyChange = (event) => {
         @menu-click="menuClick"
         @aside-lg-close-click="isAsideLgActive = false"
       />
+      <EmailVerificationBanner />
       <slot />
       <FooterBar>
         HifzMaal — Islamic Family Finance

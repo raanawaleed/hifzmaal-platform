@@ -108,4 +108,20 @@ class Family extends Model
     {
         return $this->members()->where('is_active', true)->count();
     }
+
+    /**
+     * Member seats are billed against the family owner's plan. Null means
+     * unlimited (owner has Pro access).
+     */
+    public function memberLimit(): ?int
+    {
+        return $this->owner->hasProAccess() ? null : (int) config('billing.free.max_members_per_family');
+    }
+
+    public function canAddAnotherMember(): bool
+    {
+        $limit = $this->memberLimit();
+
+        return $limit === null || $this->members()->count() < $limit;
+    }
 }

@@ -13,14 +13,20 @@ class DashboardController extends ApiController
 {
     public function index(): JsonResponse
     {
-        $signupsByMonth = User::query()
-            ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->get()
-            ->groupBy(fn ($user) => $user->created_at->format('Y-m'))
-            ->map->count();
+        // 12 small COUNT queries, not a full row fetch of every user signed
+        // up in the last year — that scan gets more expensive every month as
+        // the user base grows, and it was pulling entire User rows (hashed
+        // passwords included) into PHP just to tally them.
+        $signups = collect(range(11, 0))->map(function (int $i) {
+            $month = now()->subMonths($i);
 
-        $months = collect(range(11, 0))
-            ->map(fn ($i) => now()->subMonths($i)->format('Y-m'));
+            return [
+                'month' => $month->format('Y-m'),
+                'count' => User::whereYear('created_at', $month->year)
+                    ->whereMonth('created_at', $month->month)
+                    ->count(),
+            ];
+        });
 
         return response()->json([
             'data' => [
@@ -32,10 +38,7 @@ class DashboardController extends ApiController
                     'transactions' => Transaction::count(),
                     'transaction_volume' => (float) Transaction::where('status', 'approved')->sum('amount'),
                 ],
-                'signups' => $months->map(fn ($month) => [
-                    'month' => $month,
-                    'count' => $signupsByMonth[$month] ?? 0,
-                ])->values(),
+                'signups' => $signups->values(),
                 'recent_users' => User::latest()->limit(5)->get(['id', 'name', 'email', 'created_at']),
             ],
         ]);
