@@ -1,6 +1,7 @@
 import {
   mdiMonitor,
   mdiAccountMultiple,
+  mdiEmailOutline,
   mdiHomeGroup,
   mdiTagMultiple,
   mdiCog,
@@ -17,6 +18,11 @@ export const menuAdminMain = [
     to: '/admin/users',
     icon: mdiAccountMultiple,
     label: 'Users',
+  },
+  {
+    to: '/admin/inquiries',
+    icon: mdiEmailOutline,
+    label: 'Inquiries',
   },
   {
     to: '/admin/families',

@@ -11,6 +11,7 @@ import {
   mdiAccountGroup,
   mdiTagMultiple,
   mdiCreditCardOutline,
+  mdiHistory,
 } from '@mdi/js'
 
 export const menuAsideMain = [
@@ -76,5 +77,10 @@ export const menuAsideBottom = [
     to: '/categories',
     icon: mdiTagMultiple,
     label: 'Categories',
+  },
+  {
+    to: '/activity',
+    icon: mdiHistory,
+    label: 'Activity Log',
   },
 ]

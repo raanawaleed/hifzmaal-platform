@@ -59,4 +59,19 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Display prices
+    |--------------------------------------------------------------------------
+    |
+    | Shown on the public marketing pricing page only — the actual amount
+    | charged always comes from the Stripe price object above. Keep these
+    | in sync with Stripe by hand when you change a price there.
+    |
+    */
+    'display_prices' => [
+        'pro_monthly' => (float) env('BILLING_PRO_MONTHLY_DISPLAY_PRICE', 9),
+        'pro_yearly' => (float) env('BILLING_PRO_YEARLY_DISPLAY_PRICE', 90),
+    ],
+
 ];

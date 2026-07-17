@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Live gold/silver spot prices for Zakat nisab (see MetalPriceFeedService).
+    // Leave blank to keep using superadmin-entered rates only.
+    'goldapi' => [
+        'key' => env('GOLDAPI_KEY'),
+    ],
+
 ];

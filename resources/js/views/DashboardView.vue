@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   mdiChartTimelineVariant,
   mdiWallet,
@@ -13,6 +14,7 @@ import {
   mdiChartPie,
   mdiHandCoin,
   mdiHomeGroup,
+  mdiDownload,
 } from '@mdi/js'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionMain from '@/components/SectionMain.vue'
@@ -22,16 +24,35 @@ import CardBox from '@/components/CardBox.vue'
 import CardBoxComponentTitle from '@/components/CardBoxComponentTitle.vue'
 import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue'
 import BaseButton from '@/components/BaseButton.vue'
+import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
 import LineChart from '@/components/Charts/LineChart.vue'
 import { useFamilyStore } from '@/stores/family'
+import { useNotificationsStore } from '@/stores/notifications'
 import { useFamilyApi } from '@/utils/familyApi'
 
+const { t } = useI18n()
 const familyStore = useFamilyStore()
 const fapi = useFamilyApi()
+const notifications = useNotificationsStore()
 
 const data = ref(null)
 const loading = ref(false)
+const downloadingReport = ref(false)
+
+const downloadMonthlyReport = async () => {
+  downloadingReport.value = true
+  try {
+    const now = new Date()
+    const month = now.getMonth() + 1
+    const year = now.getFullYear()
+    await fapi.download(`/reports/monthly?month=${month}&year=${year}`, `monthly-report-${year}-${month}.pdf`)
+  } catch {
+    notifications.error('Could not download the monthly report. Please try again.')
+  } finally {
+    downloadingReport.value = false
+  }
+}
 
 const load = async () => {
   if (!familyStore.currentFamilyId) return
@@ -104,14 +125,26 @@ const chartData = computed(() => ({
 
       <template v-else>
         <SectionTitleLineWithButton :icon="mdiChartTimelineVariant" title="Overview" main>
-          <BaseButton
-            to="/transactions/create"
-            :icon="mdiSwapHorizontal"
-            label="New Transaction"
-            color="success"
-            rounded-full
-            small
-          />
+          <BaseButtons>
+            <BaseButton
+              :icon="mdiDownload"
+              :label="downloadingReport ? 'Downloading…' : 'Monthly Report'"
+              color="info"
+              outline
+              rounded-full
+              small
+              :disabled="downloadingReport"
+              @click="downloadMonthlyReport"
+            />
+            <BaseButton
+              to="/transactions/create"
+              :icon="mdiSwapHorizontal"
+              label="New Transaction"
+              color="success"
+              rounded-full
+              small
+            />
+          </BaseButtons>
         </SectionTitleLineWithButton>
 
         <!-- Stat widgets -->
@@ -259,12 +292,12 @@ const chartData = computed(() => ({
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-emerald-100">Zakat Status</p>
+              <p class="text-sm text-emerald-100">{{ t('dashboard.zakatStatus') }}</p>
               <p class="text-lg font-bold">
-                {{ data.zakat_status.is_due ? 'Zakat is due' : 'Zakat calculated' }}
+                {{ data.zakat_status.is_due ? t('dashboard.zakatIsDue') : t('dashboard.zakatCalculated') }}
               </p>
             </div>
-            <BaseButton to="/zakat" :icon="mdiHandCoin" label="View Zakat" color="whiteDark" small />
+            <BaseButton to="/zakat" :icon="mdiHandCoin" :label="t('dashboard.viewZakat')" color="whiteDark" small />
           </div>
         </CardBox>
       </template>

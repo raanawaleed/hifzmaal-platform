@@ -3,20 +3,28 @@ import { useAuthStore } from '@/stores/auth'
 import { useApiStore } from '@/stores/api'
 import { useNotificationsStore } from '@/stores/notifications'
 
+// Sanctum SPA cookie auth, not a Bearer token — withCredentials sends the
+// session + XSRF-TOKEN cookies on every request (same-origin: the SPA and
+// API share a domain), and axios reads XSRF-TOKEN itself to set the
+// X-XSRF-TOKEN header automatically. No Authorization header to attach.
 const api = axios.create({
   baseURL: '/api',
+  withCredentials: true,
+  withXSRFToken: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 })
 
+// A fresh browser has no XSRF-TOKEN cookie yet for axios to read — Sanctum's
+// /sanctum/csrf-cookie endpoint sets it. Must run (and be awaited) before
+// login/register/the 2FA challenge, each time, since logout() invalidates
+// the session and rotates the token. Not under /api, so a plain axios call.
+export const ensureCsrfCookie = () => axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+
 api.interceptors.request.use((config) => {
   useApiStore().startLoading()
-  const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
-  }
   return config
 })
 

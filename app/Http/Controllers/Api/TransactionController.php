@@ -9,9 +9,11 @@ use App\Http\Controllers\Api\Controller;
 use App\Models\Family;
 use App\Models\Transaction;
 use App\Services\TransactionService;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionController extends ApiController
 {
@@ -95,8 +97,60 @@ class TransactionController extends ApiController
     {
         $this->authorize('view', $family);
 
-        $query = $family->transactions()
+        $query = $this->filteredQuery($family, $request)
             ->with(['account', 'category', 'creator', 'approver', 'transferToAccount', 'media']);
+
+        $sortBy = $request->get('sort_by', 'date');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $transactions = $query->paginate($request->get('per_page', 15));
+
+        return TransactionResource::collection($transactions);
+    }
+
+    /**
+     * Same filters as index(), streamed out as CSV instead of paginated
+     * JSON — capped at 10k rows so a very long history can't hang the
+     * request or produce an unreasonably large download.
+     */
+    public function export(Request $request, Family $family): StreamedResponse
+    {
+        $this->authorize('view', $family);
+
+        $transactions = $this->filteredQuery($family, $request)
+            ->with(['account', 'category', 'creator'])
+            ->orderBy('date', 'desc')
+            ->limit(10000)
+            ->get();
+
+        $filename = "transactions-{$family->id}-".now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($transactions) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Date', 'Type', 'Status', 'Amount', 'Currency', 'Category', 'Account', 'Description', 'Created By']);
+
+            foreach ($transactions as $transaction) {
+                fputcsv($handle, [
+                    $transaction->date->format('Y-m-d'),
+                    $transaction->type,
+                    $transaction->status,
+                    $transaction->amount,
+                    $transaction->currency,
+                    $transaction->category->name,
+                    $transaction->account->name,
+                    $transaction->description,
+                    $transaction->creator->name,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    protected function filteredQuery(Family $family, Request $request): HasMany
+    {
+        $query = $family->transactions();
 
         if ($request->has('type')) {
             $query->where('type', $request->type);
@@ -122,13 +176,7 @@ class TransactionController extends ApiController
             $query->where('date', '<=', $request->end_date);
         }
 
-        $sortBy = $request->get('sort_by', 'date');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $transactions = $query->paginate($request->get('per_page', 15));
-
-        return TransactionResource::collection($transactions);
+        return $query;
     }
 
     /**
@@ -425,5 +473,48 @@ class TransactionController extends ApiController
             ->get();
 
         return TransactionResource::collection($transactions);
+    }
+
+    /**
+     * Attach a receipt image/PDF to a transaction. Same "who can edit it"
+     * rule as the transaction itself — evidence is part of the record.
+     */
+    public function uploadReceipt(Request $request, Family $family, Transaction $transaction): JsonResponse
+    {
+        if ($transaction->family_id !== $family->id) {
+            abort(404);
+        }
+
+        $this->authorize('update', $transaction);
+
+        $request->validate([
+            'receipt' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ]);
+
+        $media = $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
+
+        return response()->json([
+            'message' => 'Receipt uploaded successfully',
+            'data' => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'type' => $media->mime_type,
+            ],
+        ], 201);
+    }
+
+    public function deleteReceipt(Family $family, Transaction $transaction, int $media): JsonResponse
+    {
+        if ($transaction->family_id !== $family->id) {
+            abort(404);
+        }
+
+        $this->authorize('update', $transaction);
+
+        $mediaItem = $transaction->media()->where('id', $media)->firstOrFail();
+        $mediaItem->delete();
+
+        return response()->json(['message' => 'Receipt removed successfully']);
     }
 }

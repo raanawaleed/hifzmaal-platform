@@ -25,6 +25,11 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    // Required for Sanctum's SPA cookie authentication — the browser will
+    // only send/receive the session + XSRF-TOKEN cookies on XHR/fetch if
+    // the server explicitly allows credentialed requests. Safe specifically
+    // because allowed_origins above is a concrete APP_URL, never '*'
+    // (browsers refuse to combine a wildcard origin with credentials:true).
+    'supports_credentials' => true,
 
 ];

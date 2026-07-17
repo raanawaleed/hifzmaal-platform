@@ -5,6 +5,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        ]);
+
+        // Must run before auth:sanctum resolves the guard on each route —
+        // this is what makes a request from SANCTUM_STATEFUL_DOMAINS
+        // authenticate via the session/XSRF-TOKEN cookies instead of
+        // requiring a Bearer token.
+        $middleware->api(prepend: [
+            EnsureFrontendRequestsAreStateful::class,
         ]);
 
         $middleware->api(append: [
@@ -56,4 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 422);
             }
         });
+
+        // No-op when SENTRY_LARAVEL_DSN is unset — see config/sentry.php.
+        Integration::handles($exceptions);
     })->create();

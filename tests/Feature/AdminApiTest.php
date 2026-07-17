@@ -198,4 +198,44 @@ class AdminApiTest extends TestCase
             ])
             ->assertStatus(422);
     }
+
+    public function test_admin_can_update_default_zakat_language_round_trip(): void
+    {
+        // Defaults to English before anything is configured.
+        $this->actingAs($this->admin, 'sanctum')
+            ->getJson('/api/admin/settings')
+            ->assertStatus(200)
+            ->assertJsonPath('data.default_language', 'en');
+
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/admin/settings', ['default_language' => 'ur'])
+            ->assertStatus(200)
+            ->assertJsonPath('data.default_language', 'ur');
+
+        $this->assertSame('ur', PlatformSetting::get('zakat.default_language'));
+
+        // Round-trip: the saved value comes back on the next read.
+        $this->actingAs($this->admin, 'sanctum')
+            ->getJson('/api/admin/settings')
+            ->assertStatus(200)
+            ->assertJsonPath('data.default_language', 'ur');
+    }
+
+    public function test_settings_update_rejects_unsupported_language(): void
+    {
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/admin/settings', ['default_language' => 'xx'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['default_language']);
+    }
+
+    public function test_default_language_is_publicly_readable(): void
+    {
+        PlatformSetting::set('zakat.default_language', 'ar');
+
+        // No auth at all — the SPA needs this before login.
+        $this->getJson('/api/settings/default-language')
+            ->assertStatus(200)
+            ->assertJsonPath('data.default_language', 'ar');
+    }
 }

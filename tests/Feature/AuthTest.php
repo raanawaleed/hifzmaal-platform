@@ -27,7 +27,8 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonStructure(['message', 'token', 'user' => ['id', 'name', 'email', 'roles']]);
+            ->assertJsonStructure(['message', 'user' => ['id', 'name', 'email', 'roles']])
+            ->assertCookie(config('session.cookie'));
 
         $this->assertDatabaseHas('users', ['email' => 'ahmed@example.com']);
     }
@@ -68,7 +69,8 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['token', 'user' => ['id', 'roles']]);
+            ->assertJsonStructure(['user' => ['id', 'roles']])
+            ->assertCookie(config('session.cookie'));
     }
 
     public function test_login_fails_with_wrong_password(): void

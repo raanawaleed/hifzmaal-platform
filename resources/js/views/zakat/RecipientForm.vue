@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { mdiAccountHeart } from '@mdi/js'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionMain from '@/components/SectionMain.vue'
@@ -16,6 +17,7 @@ import { useFamilyApi, items, extractErrors } from '@/utils/familyApi'
 const props = defineProps({ id: { type: String, default: null } })
 const isEdit = computed(() => !!props.id)
 
+const { t } = useI18n()
 const fapi = useFamilyApi()
 const router = useRouter()
 
@@ -27,16 +29,13 @@ const form = reactive({
   notes: '',
 })
 
-const categories = [
-  { id: 'fuqara', label: 'The Poor (الفقراء)' },
-  { id: 'masakin', label: 'The Needy (المساكين)' },
-  { id: 'amilin', label: 'Zakat Administrators (العاملين عليها)' },
-  { id: 'muallaf', label: 'New Muslims (المؤلفة قلوبهم)' },
-  { id: 'riqab', label: 'Freeing Captives (في الرقاب)' },
-  { id: 'gharimin', label: 'Those in Debt (الغارمين)' },
-  { id: 'fisabilillah', label: 'In the Cause of Allah (في سبيل الله)' },
-  { id: 'ibnus_sabil', label: 'Stranded Travelers (ابن السبيل)' },
-]
+// The 8 asnaf from Surah At-Tawbah 9:60 — computed so the labels
+// re-render when the locale switches.
+const categories = computed(() =>
+  ['fuqara', 'masakin', 'amilin', 'muallaf', 'riqab', 'gharimin', 'fisabilillah', 'ibnus_sabil'].map(
+    (id) => ({ id, label: t(`zakat.categories.${id}`) }),
+  ),
+)
 
 const loading = ref(false)
 const errors = ref({})
@@ -76,10 +75,10 @@ const submit = async () => {
     <SectionMain>
       <SectionTitleLineWithButton
         :icon="mdiAccountHeart"
-        :title="isEdit ? 'Edit Recipient' : 'New Zakat Recipient'"
+        :title="isEdit ? t('zakat.editRecipient') : t('zakat.newZakatRecipient')"
         main
       >
-        <BaseButton to="/zakat/recipients" label="Back" color="whiteDark" rounded-full small />
+        <BaseButton to="/zakat/recipients" :label="t('zakat.back')" color="whiteDark" rounded-full small />
       </SectionTitleLineWithButton>
 
       <CardBox is-form @submit.prevent="submit">
@@ -87,24 +86,24 @@ const submit = async () => {
           {{ errors._message }}
         </NotificationBarInCard>
 
-        <FormField label="Name" :help="errors.name || 'Person or organization'">
+        <FormField :label="t('zakat.name')" :help="errors.name || t('zakat.nameHelp')">
           <FormControl v-model="form.name" required />
         </FormField>
 
-        <FormField label="Category" :help="errors.category || 'One of the 8 categories from Surah At-Tawbah 9:60'">
+        <FormField :label="t('zakat.category')" :help="errors.category || t('zakat.categoryHelp')">
           <FormControl v-model="form.category" :options="categories" />
         </FormField>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField label="Contact" :help="errors.contact || 'Phone / email — optional'">
+          <FormField :label="t('zakat.contact')" :help="errors.contact || t('zakat.contactHelp')">
             <FormControl v-model="form.contact" />
           </FormField>
-          <FormField label="Address" :help="errors.address || 'Optional'">
+          <FormField :label="t('zakat.address')" :help="errors.address || t('zakat.optional')">
             <FormControl v-model="form.address" />
           </FormField>
         </div>
 
-        <FormField label="Notes" :help="errors.notes">
+        <FormField :label="t('zakat.notes')" :help="errors.notes">
           <FormControl v-model="form.notes" type="textarea" />
         </FormField>
 
@@ -113,10 +112,10 @@ const submit = async () => {
             <BaseButton
               type="submit"
               color="success"
-              :label="loading ? 'Saving…' : isEdit ? 'Update Recipient' : 'Add Recipient'"
+              :label="loading ? t('zakat.saving') : isEdit ? t('zakat.updateRecipient') : t('zakat.addRecipient')"
               :disabled="loading"
             />
-            <BaseButton to="/zakat/recipients" color="whiteDark" outline label="Cancel" />
+            <BaseButton to="/zakat/recipients" color="whiteDark" outline :label="t('zakat.cancel')" />
           </BaseButtons>
         </template>
       </CardBox>

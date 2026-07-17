@@ -10,7 +10,11 @@ const routes = [
   { path: '/reset-password', name: 'reset-password', component: () => import('@/views/auth/ResetPasswordView.vue'), meta: { guest: true } },
 
   // ── Public regardless of auth state ──
-  { path: '/', name: 'landing', component: () => import('@/views/LandingView.vue'), meta: { public: true } },
+  { path: '/', name: 'marketing-home', component: () => import('@/views/marketing/HomeView.vue'), meta: { public: true } },
+  { path: '/features', name: 'marketing-features', component: () => import('@/views/marketing/FeaturesView.vue'), meta: { public: true } },
+  { path: '/pricing', name: 'marketing-pricing', component: () => import('@/views/marketing/PricingView.vue'), meta: { public: true } },
+  { path: '/security', name: 'marketing-security', component: () => import('@/views/marketing/SecurityView.vue'), meta: { public: true } },
+  { path: '/contact', name: 'marketing-contact', component: () => import('@/views/marketing/ContactView.vue'), meta: { public: true } },
   { path: '/terms', name: 'terms', component: () => import('@/views/legal/TermsView.vue'), meta: { public: true } },
   { path: '/privacy', name: 'privacy', component: () => import('@/views/legal/PrivacyView.vue'), meta: { public: true } },
   {
@@ -21,6 +25,7 @@ const routes = [
   },
 
   // ── Authenticated ──
+  { path: '/onboarding', name: 'onboarding', component: () => import('@/views/OnboardingView.vue') },
   { path: '/dashboard', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
   { path: '/profile', name: 'profile', component: () => import('@/views/ProfileView.vue') },
   { path: '/billing', name: 'billing', component: () => import('@/views/billing/BillingView.vue') },
@@ -62,6 +67,9 @@ const routes = [
   { path: '/family-members/create', name: 'family-members-create', component: () => import('@/views/members/MemberForm.vue') },
   { path: '/family-members/:id/edit', name: 'family-members-edit', component: () => import('@/views/members/MemberForm.vue'), props: true },
 
+  // Activity Log
+  { path: '/activity', name: 'activity', component: () => import('@/views/ActivityLogView.vue') },
+
   // Savings Goals
   { path: '/savings-goals', name: 'savings-goals', component: () => import('@/views/savings/SavingsList.vue') },
   { path: '/savings-goals/create', name: 'savings-create', component: () => import('@/views/savings/SavingsForm.vue') },
@@ -79,6 +87,8 @@ const routes = [
   { path: '/admin', name: 'admin-dashboard', component: () => import('@/views/admin/AdminDashboard.vue'), meta: { superadmin: true } },
   { path: '/admin/users', name: 'admin-users', component: () => import('@/views/admin/AdminUsersList.vue'), meta: { superadmin: true } },
   { path: '/admin/users/:id', name: 'admin-user-detail', component: () => import('@/views/admin/AdminUserDetail.vue'), props: true, meta: { superadmin: true } },
+  { path: '/admin/inquiries', name: 'admin-inquiries', component: () => import('@/views/admin/AdminInquiriesList.vue'), meta: { superadmin: true } },
+  { path: '/admin/inquiries/:id', name: 'admin-inquiry-detail', component: () => import('@/views/admin/AdminInquiryDetail.vue'), props: true, meta: { superadmin: true } },
   { path: '/admin/families', name: 'admin-families', component: () => import('@/views/admin/AdminFamiliesList.vue'), meta: { superadmin: true } },
   { path: '/admin/categories', name: 'admin-categories', component: () => import('@/views/admin/AdminCategoriesList.vue'), meta: { superadmin: true } },
   { path: '/admin/settings', name: 'admin-settings', component: () => import('@/views/admin/AdminSettings.vue'), meta: { superadmin: true } },
@@ -104,11 +114,11 @@ router.beforeEach(async (to) => {
     return
   }
 
-  if (!to.meta.guest && !authStore.token) {
+  if (!to.meta.guest && !authStore.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  if (to.meta.guest && authStore.token) {
+  if (to.meta.guest && authStore.isAuthenticated) {
     return { name: authStore.isSuperAdmin ? 'admin-dashboard' : 'dashboard' }
   }
 
@@ -119,7 +129,7 @@ router.beforeEach(async (to) => {
   // Resolve families BEFORE any family-scoped view mounts. This kills the
   // race where views checked hasFamily() while the list was still loading
   // and rendered permanently empty.
-  if (!to.meta.guest && !to.meta.superadmin && authStore.token) {
+  if (!to.meta.guest && !to.meta.superadmin && authStore.isAuthenticated) {
     const familyStore = useFamilyStore()
     await familyStore.ensureLoaded()
   }

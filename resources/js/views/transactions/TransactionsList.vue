@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { mdiSwapHorizontal, mdiPlus, mdiPencil, mdiTrashCan } from '@mdi/js'
+import { mdiSwapHorizontal, mdiPlus, mdiPencil, mdiTrashCan, mdiDownload } from '@mdi/js'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionMain from '@/components/SectionMain.vue'
 import SectionTitleLineWithButton from '@/components/SectionTitleLineWithButton.vue'
@@ -11,14 +11,17 @@ import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import PillTag from '@/components/PillTag.vue'
 import { useFamilyStore } from '@/stores/family'
+import { useNotificationsStore } from '@/stores/notifications'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
 const fapi = useFamilyApi()
 const familyStore = useFamilyStore()
+const notifications = useNotificationsStore()
 const rows = ref([])
 const loading = ref(false)
 const deleteTarget = ref(null)
 const filterType = ref('')
+const exporting = ref(false)
 
 const load = async () => {
   if (!fapi.hasFamily()) return
@@ -44,6 +47,18 @@ const setFilter = (t) => {
   load()
 }
 
+const exportCsv = async () => {
+  exporting.value = true
+  try {
+    const q = filterType.value ? `?type=${filterType.value}` : ''
+    await fapi.download(`/transactions/export${q}`, 'transactions.csv')
+  } catch {
+    notifications.error('Could not export transactions. Please try again.')
+  } finally {
+    exporting.value = false
+  }
+}
+
 const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
 const statusColor = { approved: 'success', pending: 'warning', rejected: 'danger' }
 </script>
@@ -52,7 +67,19 @@ const statusColor = { approved: 'success', pending: 'warning', rejected: 'danger
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiSwapHorizontal" title="Transactions" main>
-        <BaseButton v-if="familyStore.canEdit" to="/transactions/create" :icon="mdiPlus" label="New Transaction" color="success" rounded-full small />
+        <BaseButtons>
+          <BaseButton
+            :icon="mdiDownload"
+            :label="exporting ? 'Exporting…' : 'Export CSV'"
+            color="info"
+            outline
+            rounded-full
+            small
+            :disabled="exporting"
+            @click="exportCsv"
+          />
+          <BaseButton v-if="familyStore.canEdit" to="/transactions/create" :icon="mdiPlus" label="New Transaction" color="success" rounded-full small />
+        </BaseButtons>
       </SectionTitleLineWithButton>
 
       <div class="mb-4 flex gap-2">

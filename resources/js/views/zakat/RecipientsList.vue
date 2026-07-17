@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { mdiAccountHeart, mdiPlus, mdiPencil } from '@mdi/js'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionMain from '@/components/SectionMain.vue'
@@ -12,21 +13,16 @@ import PillTag from '@/components/PillTag.vue'
 import { useFamilyStore } from '@/stores/family'
 import { useFamilyApi, items } from '@/utils/familyApi'
 
+const { t, te, locale } = useI18n()
 const fapi = useFamilyApi()
 const familyStore = useFamilyStore()
 const rows = ref([])
 const loading = ref(false)
 
-const categoryLabels = {
-  fuqara: 'The Poor (الفقراء)',
-  masakin: 'The Needy (المساكين)',
-  amilin: 'Administrators (العاملين)',
-  muallaf: 'New Muslims (المؤلفة قلوبهم)',
-  riqab: 'Freeing Captives (في الرقاب)',
-  gharimin: 'In Debt (الغارمين)',
-  fisabilillah: 'In Allah\'s Cause (في سبيل الله)',
-  ibnus_sabil: 'Travelers (ابن السبيل)',
-}
+// The 8 asnaf from Surah At-Tawbah 9:60 — translated per locale, with the
+// raw category id as fallback for anything unexpected from the API.
+const categoryLabel = (category) =>
+  te(`zakat.categories.${category}`) ? t(`zakat.categories.${category}`) : category
 
 const load = async () => {
   if (!fapi.hasFamily()) return
@@ -44,10 +40,10 @@ onMounted(load)
 <template>
   <LayoutAuthenticated>
     <SectionMain>
-      <SectionTitleLineWithButton :icon="mdiAccountHeart" title="Zakat Recipients" main>
+      <SectionTitleLineWithButton :icon="mdiAccountHeart" :title="t('zakat.recipientsTitle')" main>
         <BaseButtons>
-          <BaseButton to="/zakat" label="Back to Zakat" color="whiteDark" rounded-full small />
-          <BaseButton v-if="familyStore.canEdit" to="/zakat/recipients/create" :icon="mdiPlus" label="New Recipient" color="success" rounded-full small />
+          <BaseButton to="/zakat" :label="t('zakat.backToZakat')" color="whiteDark" rounded-full small />
+          <BaseButton v-if="familyStore.canEdit" to="/zakat/recipients/create" :icon="mdiPlus" :label="t('zakat.newRecipient')" color="success" rounded-full small />
         </BaseButtons>
       </SectionTitleLineWithButton>
 
@@ -55,22 +51,22 @@ onMounted(load)
         <table v-if="rows.length">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Contact</th>
-              <th>Total Received</th>
+              <th>{{ t('zakat.name') }}</th>
+              <th>{{ t('zakat.category') }}</th>
+              <th>{{ t('zakat.contact') }}</th>
+              <th>{{ t('zakat.totalReceived') }}</th>
               <th />
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in rows" :key="row.id">
-              <td data-label="Name" class="font-medium">{{ row.name }}</td>
-              <td data-label="Category">
-                <PillTag color="info" :label="categoryLabels[row.category] || row.category" small />
+              <td :data-label="t('zakat.name')" class="font-medium">{{ row.name }}</td>
+              <td :data-label="t('zakat.category')">
+                <PillTag color="info" :label="categoryLabel(row.category)" small />
               </td>
-              <td data-label="Contact">{{ row.contact || '—' }}</td>
-              <td data-label="Total Received" class="font-semibold">
-                {{ Number(row.total_received || 0).toLocaleString() }}
+              <td :data-label="t('zakat.contact')">{{ row.contact || '—' }}</td>
+              <td :data-label="t('zakat.totalReceived')" class="font-semibold">
+                {{ Number(row.total_received || 0).toLocaleString(locale) }}
               </td>
               <td class="whitespace-nowrap before:hidden lg:w-1">
                 <BaseButtons type="justify-start lg:justify-end" no-wrap>
@@ -80,7 +76,7 @@ onMounted(load)
             </tr>
           </tbody>
         </table>
-        <CardBoxComponentEmpty v-else-if="!loading" message="No recipients yet — add people or organizations you give Zakat to" />
+        <CardBoxComponentEmpty v-else-if="!loading" :message="t('zakat.emptyRecipients')" />
       </CardBox>
     </SectionMain>
   </LayoutAuthenticated>

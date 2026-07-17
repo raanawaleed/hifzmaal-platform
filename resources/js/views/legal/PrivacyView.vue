@@ -84,7 +84,9 @@ const lastUpdated = 'July 8, 2026'
       <h2 class="mt-8 mb-2 text-lg font-bold text-gray-900 dark:text-slate-100">9. Contact</h2>
       <p class="mb-4">
         For privacy questions or data requests, contact
-        <a href="mailto:hello@hifzmaal.com" class="text-emerald-600 hover:underline">hello@hifzmaal.com</a>.
+        <a href="mailto:hello@hifzmaal.com" class="text-emerald-600 hover:underline">hello@hifzmaal.com</a>
+        or reach us through our
+        <router-link to="/contact" class="text-emerald-600 hover:underline">contact page</router-link>.
       </p>
 
       <p class="mt-10 text-xs text-gray-400 dark:text-slate-500">

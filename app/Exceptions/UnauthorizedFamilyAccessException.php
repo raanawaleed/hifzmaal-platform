@@ -11,13 +11,19 @@ class UnauthorizedFamilyAccessException extends Exception
 
     public function render($request)
     {
-        if ($request->expectsJson()) {
+        // Every route this can be thrown from lives under /api/* — direct
+        // browser navigation (e.g. clicking an export/report download link)
+        // won't set Accept: application/json, so expectsJson() alone isn't
+        // enough. There's no server-rendered 'dashboard' route in this
+        // API+SPA app to redirect to, so that fallback would 500 instead
+        // of gracefully failing.
+        if ($request->is('api/*') || $request->expectsJson()) {
             return response()->json([
                 'message' => $this->message,
                 'error' => 'unauthorized_access'
             ], $this->code);
         }
 
-        return redirect()->route('dashboard')->withErrors(['error' => $this->message]);
+        return redirect('/')->withErrors(['error' => $this->message]);
     }
 }

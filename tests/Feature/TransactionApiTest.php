@@ -8,6 +8,8 @@ use App\Models\Family;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\CreatesFamilies;
 use Tests\TestCase;
 
@@ -250,5 +252,81 @@ class TransactionApiTest extends TestCase
             ]));
 
         $response->assertStatus(422)->assertJsonValidationErrors('amount');
+    }
+
+    public function test_owner_can_upload_and_delete_a_receipt(): void
+    {
+        Storage::fake('public');
+
+        $transaction = Transaction::factory()->create([
+            'family_id' => $this->family->id,
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'created_by' => $this->user->id,
+        ]);
+
+        // ->create() writes junk bytes finfo won't recognize as a real
+        // image, which MediaLibrary's own content-sniffing then rejects —
+        // ->image() renders an actual valid JPEG.
+        $file = UploadedFile::fake()->image('receipt.jpg', 100, 100);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/families/{$this->family->id}/transactions/{$transaction->id}/receipts", [
+                'receipt' => $file,
+            ]);
+
+        $response->assertStatus(201);
+        $mediaId = $response->json('data.id');
+        $this->assertNotNull($mediaId);
+        $this->assertCount(1, $transaction->fresh()->getMedia('receipts'));
+
+        $this->actingAs($this->user, 'sanctum')
+            ->deleteJson("/api/families/{$this->family->id}/transactions/{$transaction->id}/receipts/{$mediaId}")
+            ->assertStatus(200);
+
+        $this->assertCount(0, $transaction->fresh()->getMedia('receipts'));
+    }
+
+    public function test_receipt_upload_rejects_unsupported_file_type(): void
+    {
+        Storage::fake('public');
+
+        $transaction = Transaction::factory()->create([
+            'family_id' => $this->family->id,
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'created_by' => $this->user->id,
+        ]);
+
+        $file = UploadedFile::fake()->create('malware.exe', 100, 'application/x-msdownload');
+
+        $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/families/{$this->family->id}/transactions/{$transaction->id}/receipts", [
+                'receipt' => $file,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('receipt');
+    }
+
+    public function test_viewer_cannot_upload_a_receipt(): void
+    {
+        Storage::fake('public');
+
+        $viewer = $this->addMember($this->family, 'viewer');
+        $transaction = Transaction::factory()->create([
+            'family_id' => $this->family->id,
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'created_by' => $this->user->id,
+            'status' => 'approved',
+        ]);
+
+        $file = UploadedFile::fake()->create('receipt.jpg', 100, 'image/jpeg');
+
+        $this->actingAs($viewer, 'sanctum')
+            ->postJson("/api/families/{$this->family->id}/transactions/{$transaction->id}/receipts", [
+                'receipt' => $file,
+            ])
+            ->assertStatus(403);
     }
 }

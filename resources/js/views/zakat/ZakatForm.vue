@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { mdiHandCoin, mdiCalculator } from '@mdi/js'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionMain from '@/components/SectionMain.vue'
@@ -14,6 +15,7 @@ import NotificationBarInCard from '@/components/NotificationBarInCard.vue'
 import PillTag from '@/components/PillTag.vue'
 import { useFamilyApi, extractErrors } from '@/utils/familyApi'
 
+const { t, locale } = useI18n()
 const fapi = useFamilyApi()
 const router = useRouter()
 
@@ -35,10 +37,11 @@ const form = reactive({
   notes: '',
 })
 
-const nisabTypes = [
-  { id: 'silver', label: 'Silver (612.36g) — recommended' },
-  { id: 'gold', label: 'Gold (87.48g)' },
-]
+// computed so the option labels re-render when the locale switches
+const nisabTypes = computed(() => [
+  { id: 'silver', label: t('zakat.nisabSilverOption') },
+  { id: 'gold', label: t('zakat.nisabGoldOption') },
+])
 
 const nisabAmount = ref(null)
 const loading = ref(false)
@@ -105,14 +108,14 @@ const submit = async () => {
   }
 }
 
-const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
+const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString(locale.value))
 </script>
 
 <template>
   <LayoutAuthenticated>
     <SectionMain>
-      <SectionTitleLineWithButton :icon="mdiHandCoin" title="Calculate Zakat" main>
-        <BaseButton to="/zakat" label="Back" color="whiteDark" rounded-full small />
+      <SectionTitleLineWithButton :icon="mdiHandCoin" :title="t('zakat.formTitle')" main>
+        <BaseButton to="/zakat" :label="t('zakat.back')" color="whiteDark" rounded-full small />
       </SectionTitleLineWithButton>
 
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -124,10 +127,10 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
             </NotificationBarInCard>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField label="Hijri Year" :help="errors.hijri_year">
+              <FormField :label="t('zakat.hijriYear')" :help="errors.hijri_year">
                 <FormControl v-model="form.hijri_year" type="number" required />
               </FormField>
-              <FormField label="Nisab Standard" :help="errors.nisab_type">
+              <FormField :label="t('zakat.nisabStandard')" :help="errors.nisab_type">
                 <FormControl v-model="form.nisab_type" :options="nisabTypes" @change="loadNisab" />
               </FormField>
             </div>
@@ -135,7 +138,7 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
             <div class="mb-2">
               <BaseButton
                 :icon="mdiCalculator"
-                :label="autoFilling ? 'Filling from accounts…' : 'Auto-fill from accounts'"
+                :label="autoFilling ? t('zakat.autoFilling') : t('zakat.autoFill')"
                 color="info"
                 outline
                 small
@@ -145,37 +148,37 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
             </div>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField label="Cash in Hand" :help="errors.cash_in_hand">
+              <FormField :label="t('zakat.cashInHand')" :help="errors.cash_in_hand">
                 <FormControl v-model="form.cash_in_hand" type="number" inputmode="decimal" required />
               </FormField>
-              <FormField label="Cash in Bank" :help="errors.cash_in_bank">
+              <FormField :label="t('zakat.cashInBank')" :help="errors.cash_in_bank">
                 <FormControl v-model="form.cash_in_bank" type="number" inputmode="decimal" required />
               </FormField>
-              <FormField label="Gold Value" :help="errors.gold_value">
+              <FormField :label="t('zakat.goldValue')" :help="errors.gold_value">
                 <FormControl v-model="form.gold_value" type="number" inputmode="decimal" />
               </FormField>
-              <FormField label="Silver Value" :help="errors.silver_value">
+              <FormField :label="t('zakat.silverValue')" :help="errors.silver_value">
                 <FormControl v-model="form.silver_value" type="number" inputmode="decimal" />
               </FormField>
-              <FormField label="Business Inventory" :help="errors.business_inventory">
+              <FormField :label="t('zakat.businessInventory')" :help="errors.business_inventory">
                 <FormControl v-model="form.business_inventory" type="number" inputmode="decimal" />
               </FormField>
-              <FormField label="Investments" :help="errors.investments">
+              <FormField :label="t('zakat.investments')" :help="errors.investments">
                 <FormControl v-model="form.investments" type="number" inputmode="decimal" />
               </FormField>
-              <FormField label="Loans Receivable" :help="errors.loans_receivable">
+              <FormField :label="t('zakat.loansReceivable')" :help="errors.loans_receivable">
                 <FormControl v-model="form.loans_receivable" type="number" inputmode="decimal" />
               </FormField>
-              <FormField label="Other Assets" :help="errors.other_assets">
+              <FormField :label="t('zakat.otherAssets')" :help="errors.other_assets">
                 <FormControl v-model="form.other_assets" type="number" inputmode="decimal" />
               </FormField>
             </div>
 
-            <FormField label="Debts & Liabilities" :help="errors.debts || 'Deducted from your wealth'">
+            <FormField :label="t('zakat.debtsLiabilities')" :help="errors.debts || t('zakat.debtsHelp')">
               <FormControl v-model="form.debts" type="number" inputmode="decimal" />
             </FormField>
 
-            <FormField label="Notes" :help="errors.notes">
+            <FormField :label="t('zakat.notes')" :help="errors.notes">
               <FormControl v-model="form.notes" type="textarea" />
             </FormField>
 
@@ -184,10 +187,10 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
                 <BaseButton
                   type="submit"
                   color="success"
-                  :label="loading ? 'Calculating…' : 'Save Calculation'"
+                  :label="loading ? t('zakat.calculating') : t('zakat.saveCalculation')"
                   :disabled="loading"
                 />
-                <BaseButton to="/zakat" color="whiteDark" outline label="Cancel" />
+                <BaseButton to="/zakat" color="whiteDark" outline :label="t('zakat.cancel')" />
               </BaseButtons>
             </template>
           </CardBox>
@@ -196,37 +199,39 @@ const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString())
         <!-- Live summary -->
         <div>
           <CardBox class="sticky top-20">
-            <h3 class="mb-4 text-lg font-semibold">Live Summary</h3>
+            <h3 class="mb-4 text-lg font-semibold">{{ t('zakat.liveSummary') }}</h3>
             <div class="space-y-3 text-sm">
               <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-slate-400">Total Assets</span>
+                <span class="text-gray-500 dark:text-slate-400">{{ t('zakat.totalAssets') }}</span>
                 <b>{{ fmt(totalAssets) }}</b>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-slate-400">Debts</span>
+                <span class="text-gray-500 dark:text-slate-400">{{ t('zakat.debts') }}</span>
                 <b class="text-red-500">−{{ fmt(form.debts) }}</b>
               </div>
               <hr class="border-gray-100 dark:border-slate-700" />
               <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-slate-400">Net Wealth</span>
+                <span class="text-gray-500 dark:text-slate-400">{{ t('zakat.netWealth') }}</span>
                 <b>{{ fmt(netWealth) }}</b>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-slate-400">Nisab ({{ form.nisab_type }})</span>
+                <span class="text-gray-500 dark:text-slate-400">
+                  {{ t('zakat.nisabWithType', { type: t(`zakat.metal.${form.nisab_type}`) }) }}
+                </span>
                 <b>{{ fmt(nisabAmount) }}</b>
               </div>
               <div class="pt-2">
                 <PillTag
                   v-if="nisabAmount != null"
                   :color="netWealth >= nisabAmount ? 'warning' : 'info'"
-                  :label="netWealth >= nisabAmount ? 'Zakat is due' : 'Below Nisab — no Zakat'"
+                  :label="netWealth >= nisabAmount ? t('zakat.zakatIsDue') : t('zakat.belowNisabNoZakat')"
                 />
               </div>
               <div
                 class="mt-2 rounded-xl bg-emerald-50 p-4 text-center dark:bg-emerald-900/20"
               >
                 <p class="text-xs text-emerald-700 uppercase dark:text-emerald-400">
-                  Estimated Zakat (2.5%)
+                  {{ t('zakat.estimatedZakat') }}
                 </p>
                 <p class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
                   {{ fmt(estimatedZakat) }}

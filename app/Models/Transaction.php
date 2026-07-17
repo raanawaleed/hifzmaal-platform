@@ -8,12 +8,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Transaction extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('financial')
+            ->logOnly(['type', 'amount', 'currency', 'date', 'description', 'status', 'account_id', 'category_id', 'transfer_to_account_id'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
+    }
 
     protected $fillable = [
         'family_id',
@@ -93,9 +104,13 @@ class Transaction extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        // MediaCollection has no maxFilesize() in this MediaLibrary version
+        // (that call was broken — Method ... does not exist — since this
+        // collection was first registered; nothing had exercised it until
+        // the receipt upload endpoint was added). File size is enforced by
+        // the 'max:5120' rule on the upload request instead.
         $this->addMediaCollection('receipts')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'])
-            ->maxFilesize(5 * 1024 * 1024); // 5MB
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']);
     }
 
     public function scopePending(Builder $query): Builder

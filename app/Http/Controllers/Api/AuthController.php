@@ -10,11 +10,15 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
+use PragmaRX\Google2FA\Google2FA;
 
 class AuthController extends ApiController
 {
@@ -41,7 +45,6 @@ class AuthController extends ApiController
      *         description="User registered successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="token", type="string"),
      *             @OA\Property(property="user", type="object")
      *         )
      *     ),
@@ -72,11 +75,11 @@ class AuthController extends ApiController
 
         event(new Registered($user));
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'User registered successfully',
-            'token' => $token,
             'user' => new UserResource($user),
         ], 201);
     }
@@ -101,7 +104,6 @@ class AuthController extends ApiController
      *         description="Login successful",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="token", type="string"),
      *             @OA\Property(property="user", type="object")
      *         )
      *     ),
@@ -130,11 +132,91 @@ class AuthController extends ApiController
             ], 403);
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        if ($user->hasEnabledTwoFactorAuthentication()) {
+            // Password is correct, but don't issue a real token yet — hand
+            // back a short-lived challenge token the client exchanges for
+            // one at /login/two-factor-challenge, once they've also proven
+            // the authenticator code.
+            $challengeToken = Str::random(64);
+            Cache::put("2fa-challenge:{$challengeToken}", $user->id, now()->addMinutes(5));
+
+            return response()->json([
+                'two_factor_required' => true,
+                'two_factor_token' => $challengeToken,
+            ]);
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Login successful',
-            'token' => $token,
+            'user' => new UserResource($user),
+        ]);
+    }
+
+    /**
+     * Step 2 of login when 2FA is enabled: exchange the challenge token
+     * from login() plus a TOTP (or recovery) code for a real session.
+     */
+    public function twoFactorChallenge(Request $request, Google2FA $google2fa): JsonResponse
+    {
+        $request->validate([
+            'two_factor_token' => ['required', 'string'],
+            'code' => ['nullable', 'string'],
+            'recovery_code' => ['nullable', 'string'],
+        ]);
+
+        $cacheKey = "2fa-challenge:{$request->two_factor_token}";
+        $userId = Cache::get($cacheKey);
+
+        if (! $userId) {
+            throw ValidationException::withMessages([
+                'two_factor_token' => ['This challenge has expired. Please log in again.'],
+            ]);
+        }
+
+        $user = User::find($userId);
+
+        if (! $user || ! $user->hasEnabledTwoFactorAuthentication()) {
+            Cache::forget($cacheKey);
+            throw ValidationException::withMessages([
+                'two_factor_token' => ['This challenge is no longer valid. Please log in again.'],
+            ]);
+        }
+
+        if ($request->filled('recovery_code')) {
+            $codes = $user->two_factor_recovery_codes ?? [];
+            $remaining = array_values(array_filter($codes, fn ($c) => ! hash_equals($c, $request->recovery_code)));
+
+            if (count($remaining) === count($codes)) {
+                throw ValidationException::withMessages([
+                    'recovery_code' => ['That recovery code is invalid.'],
+                ]);
+            }
+
+            // Recovery codes are one-time use — remove it once spent.
+            $user->forceFill(['two_factor_recovery_codes' => $remaining])->save();
+        } elseif ($request->filled('code')) {
+            // verifyKey() can return 0 (valid, zero drift) — not just true.
+            if ($google2fa->verifyKey($user->two_factor_secret, $request->code) === false) {
+                throw ValidationException::withMessages([
+                    'code' => ['That code is invalid or has expired.'],
+                ]);
+            }
+        } else {
+            throw ValidationException::withMessages([
+                'code' => ['Enter a code from your authenticator app or a recovery code.'],
+            ]);
+        }
+
+        Cache::forget($cacheKey);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json([
+            'message' => 'Login successful',
             'user' => new UserResource($user),
         ]);
     }
@@ -156,7 +238,21 @@ class AuthController extends ApiController
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        // Cookie-authenticated requests resolve currentAccessToken() to a
+        // TransientToken, which has no delete() method at all — calling it
+        // unconditionally (the old Bearer-token-only code) would throw a
+        // fatal error for every session-authenticated logout. Only a real,
+        // pre-migration Bearer token (someone's browser still holding one
+        // from before this deploy) needs explicit revocation here.
+        $token = $request->user()->currentAccessToken();
+        if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
+            $token->delete();
+        }
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return response()->json(['message' => 'Logout successful']);
     }
 
@@ -242,8 +338,12 @@ class AuthController extends ApiController
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                // Invalidate every existing session/token after a reset.
+                // Invalidate every existing session/token after a reset —
+                // sessions by user_id since this runs against whichever
+                // browser owns the reset link, not necessarily the one
+                // holding a since-compromised session.
                 $user->tokens()->delete();
+                DB::table('sessions')->where('user_id', $user->id)->delete();
             }
         );
 
@@ -322,6 +422,9 @@ class AuthController extends ApiController
         }
 
         $user->tokens()->delete();
+        // By user_id, not just the current session — covers any other
+        // device/browser this account is still logged into.
+        DB::table('sessions')->where('user_id', $user->id)->delete();
         $user->familyMemberships()->update(['is_active' => false]);
 
         // Anonymize rather than hard-delete: transactions this user created
@@ -336,6 +439,10 @@ class AuthController extends ApiController
         ])->save();
 
         $user->delete();
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Your account has been deleted.']);
     }

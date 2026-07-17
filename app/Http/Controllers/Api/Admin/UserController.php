@@ -7,6 +7,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends ApiController
 {
@@ -63,6 +64,10 @@ class UserController extends ApiController
         // forceFill: is_active/suspended_at are deliberately not mass-assignable.
         $user->forceFill(['is_active' => false, 'suspended_at' => now()])->save();
         $user->tokens()->delete();
+        // Session-cookie auth doesn't leave a revocable token behind the
+        // way Bearer auth did — the actual kick-out for a cookie-authed
+        // user is deleting their session row(s) directly.
+        DB::table('sessions')->where('user_id', $user->id)->delete();
 
         return response()->json(['message' => "{$user->email} has been suspended."]);
     }

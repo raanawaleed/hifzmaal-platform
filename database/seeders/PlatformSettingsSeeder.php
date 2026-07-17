@@ -32,5 +32,12 @@ class PlatformSettingsSeeder extends Seeder
                 'silver_grams' => 612.36,
             ]]
         );
+
+        // Default UI language for visitors/members who never picked one
+        // themselves (en, ar, ur, hi, bn, fr, de, es).
+        PlatformSetting::firstOrCreate(
+            ['key' => 'zakat.default_language'],
+            ['value' => 'en']
+        );
     }
 }

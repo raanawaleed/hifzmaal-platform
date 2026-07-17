@@ -11,6 +11,23 @@ use Stripe\Exception\ApiErrorException;
 class BillingController extends ApiController
 {
     /**
+     * Unauthenticated — powers the public marketing pricing page. No plan
+     * IDs or Stripe details, just what's safe to show a logged-out visitor.
+     */
+    public function pricing(): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'currency' => strtoupper(config('billing.currency')),
+                'trial_days' => config('billing.trial_days'),
+                'free' => config('billing.free'),
+                'pro_monthly_price' => config('billing.display_prices.pro_monthly'),
+                'pro_yearly_price' => config('billing.display_prices.pro_yearly'),
+            ],
+        ]);
+    }
+
+    /**
      * Current plan, trial, and family/member usage vs. limits — drives the
      * billing screen and any "upgrade to Pro" prompts in the SPA.
      */

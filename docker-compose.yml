@@ -1,0 +1,80 @@
+name: hifzmaal
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      # 8080 is a very commonly-squatted default (Traefik, other local
+      # dev stacks) — 8090 collides less, and APP_PORT overrides either way.
+      - "${APP_PORT:-8090}:8080"
+    env_file: .env
+    environment:
+      # Overrides .env's DB_HOST=127.0.0.1 (meant for non-Docker local
+      # dev) — inside this compose network the DB is reachable by its
+      # service name, not localhost.
+      DB_HOST: mysql
+      DB_PORT: 3306
+    volumes:
+      # Receipts (storage/app/public) need to survive redeploys and be
+      # visible to every replica of this service — a container's own
+      # filesystem layer is thrown away on every rebuild. For real
+      # multi-host scaling, set MEDIA_DISK=s3 in .env instead and drop
+      # this volume; a local volume only works within one Docker host.
+      - storage_data:/var/www/html/storage/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  queue:
+    build: .
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    env_file: .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+    volumes:
+      - storage_data:/var/www/html/storage/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Laravel 11+'s foreground scheduler loop — the containerized equivalent
+  # of the cron entry in INSTALLATION.md's non-Docker instructions. Drives
+  # bill/Zakat reminders, auto-contributions, metal-rate refresh, backups.
+  scheduler:
+    build: .
+    restart: unless-stopped
+    command: php artisan schedule:work
+    env_file: .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+    volumes:
+      - storage_data:/var/www/html/storage/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-hifzmaal}
+      MYSQL_USER: ${DB_USERNAME:-hifzmaal}
+      # Set a real DB_PASSWORD in .env before going anywhere near
+      # production — this only defaults empty for a first local run.
+      MYSQL_PASSWORD: ${DB_PASSWORD:-hifzmaal}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:
+  storage_data:

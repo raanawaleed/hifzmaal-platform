@@ -18,7 +18,29 @@ export function useFamilyApi() {
     put: (path, data, config) => api.put(`${base()}${path}`, data, config),
     delete: (path, config) => api.delete(`${base()}${path}`, config),
     hasFamily: () => !!familyStore.currentFamilyId,
+    // A plain <a href> would authenticate fine now (cookies ride along on
+    // same-origin navigation), but it can't read the Content-Disposition
+    // header for the real filename — fetch as a blob and save manually.
+    download: async (path, fallbackFilename) => {
+      const res = await api.get(`${base()}${path}`, { responseType: 'blob' })
+      downloadBlob(res, fallbackFilename)
+    },
   }
+}
+
+function downloadBlob(res, fallbackFilename) {
+  const disposition = res.headers?.['content-disposition'] || ''
+  const match = disposition.match(/filename="?([^";]+)"?/)
+  const filename = match ? match[1] : fallbackFilename
+
+  const url = URL.createObjectURL(new Blob([res.data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 // Extract items from Laravel API/paginated responses

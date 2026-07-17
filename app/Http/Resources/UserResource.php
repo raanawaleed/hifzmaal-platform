@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'locale' => $this->locale,
             'timezone' => $this->timezone,
             'is_active' => $this->is_active,
+            'two_factor_enabled' => $this->hasEnabledTwoFactorAuthentication(),
             'roles' => $this->getRoleNames(),
             'created_at' => $this->created_at,
         ];
