@@ -26,6 +26,7 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+const linkIncomplete = !form.token || !form.email
 
 const submit = async () => {
   loading.value = true
@@ -48,7 +49,25 @@ const submit = async () => {
 
 <template>
   <LayoutGuest>
-    <SectionFullScreen v-slot="{ cardClass }" bg="emerald">
+    <SectionFullScreen v-if="linkIncomplete" v-slot="{ cardClass }" bg="emerald">
+      <CardBox :class="cardClass">
+        <div class="mb-6 text-center">
+          <h1 class="text-2xl font-bold">Invalid reset link</h1>
+          <p class="text-sm text-gray-500 dark:text-slate-400">
+            This password reset link is incomplete or has already been used. Request a new one to continue.
+          </p>
+        </div>
+
+        <template #footer>
+          <BaseButtons>
+            <BaseButton to="/forgot-password" color="success" label="Request a new link" />
+            <BaseButton to="/login" color="success" outline label="Back to sign in" />
+          </BaseButtons>
+        </template>
+      </CardBox>
+    </SectionFullScreen>
+
+    <SectionFullScreen v-else v-slot="{ cardClass }" bg="emerald">
       <CardBox :class="cardClass" is-form @submit.prevent="submit">
         <div class="mb-6 text-center">
           <h1 class="text-2xl font-bold">Set a new password</h1>

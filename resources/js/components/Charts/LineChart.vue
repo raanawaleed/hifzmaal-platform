@@ -58,5 +58,7 @@ watch(chartData, (data) => {
 </script>
 
 <template>
-  <canvas ref="root" />
+  <div class="relative">
+    <canvas ref="root" class="absolute inset-0 h-full w-full" />
+  </div>
 </template>
